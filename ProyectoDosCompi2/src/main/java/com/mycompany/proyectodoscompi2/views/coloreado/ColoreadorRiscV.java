@@ -21,9 +21,6 @@ public final class ColoreadorRiscV {
     private static final SimpleAttributeSet NUMERO = estilo("#C62828", false);
     private static final SimpleAttributeSet TEXTO = estilo("#2E7D32", false);
     private static final SimpleAttributeSet COMENTARIO = estilo("#8A8A8A", false);
-    static {
-        StyleConstants.setItalic(COMENTARIO, true);
-    }
 
     private static final Pattern ETIQUETA_INICIO = Pattern.compile("^\\s*([A-Za-z_.$][\\w.$]*):");
     private static final Pattern PRIMERA_PALABRA = Pattern.compile("^\\s*([.A-Za-z_][\\w.]*)");

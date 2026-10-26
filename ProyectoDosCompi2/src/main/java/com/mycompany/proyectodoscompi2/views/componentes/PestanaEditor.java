@@ -28,6 +28,7 @@ import javax.swing.text.TabStop;
 import javax.swing.undo.UndoManager;
 
 import com.mycompany.proyectodoscompi2.analizador.Lenguaje;
+import com.mycompany.proyectodoscompi2.views.coloreado.Coloreador;
 
 // Una pestaña del editor
 public class PestanaEditor extends JPanel {
@@ -35,6 +36,7 @@ public class PestanaEditor extends JPanel {
     private static final int ESPACIOS_POR_TAB = 4;
 
     private final JTextPane texto;
+    private final Coloreador coloreador;
     private final UndoManager deshacer = new UndoManager();
     private final List<Runnable> alCambiarEstado = new ArrayList<>();
     private Path archivo;
@@ -68,6 +70,8 @@ public class PestanaEditor extends JPanel {
         add(desplazamiento, BorderLayout.CENTER);
 
         configurarDeshacer();
+        coloreador = new Coloreador(texto);
+        coloreador.setLenguaje(getLenguaje().orElse(null));
         texto.getDocument().addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -147,7 +151,7 @@ public class PestanaEditor extends JPanel {
         alCambiarEstado.add(accion);
     }
 
-    // ---------- Consultas ----------
+    //Consultas
 
     public JTextPane getTexto() {
         return texto;
@@ -163,6 +167,7 @@ public class PestanaEditor extends JPanel {
 
     public void setArchivo(Path archivo) {
         this.archivo = archivo;
+        coloreador.setLenguaje(getLenguaje().orElse(null));
         notificar();
     }
 

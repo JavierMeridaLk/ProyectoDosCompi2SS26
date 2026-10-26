@@ -1,0 +1,316 @@
+Zetariano: sentencias dentro de un metodo.
+
+@@@ OK sentencia : declaraciones de todos los tipos primitivos
+int a = 1;
+double d = 2.5;
+char c = 'z';
+boolean b = false;
+String s = "texto";
+
+@@@ OK sentencia : declaracion multiple local
+int i = 0, j, k = 10;
+
+@@@ OK sentencia : declaracion de arreglo local inicializado
+int[][] m = {{1, 2, 3}, {4, 5, 6}};
+
+@@@ OK sentencia : if simple
+if (x > 0) {
+    println("positivo");
+}
+
+@@@ OK sentencia : if sin llaves
+if (x > 0) println("positivo");
+
+@@@ OK sentencia : if else
+if (x > 0) {
+    println("positivo");
+} else {
+    println("no positivo");
+}
+
+@@@ OK sentencia : cadena de else if
+if (nota >= 90) {
+    println("A");
+} else if (nota >= 80) {
+    println("B");
+} else if (nota >= 70) {
+    println("C");
+} else {
+    println("F");
+}
+
+@@@ OK sentencia : if anidado con else colgante
+if (a) if (b) println("ab"); else println("a no b");
+
+@@@ OK sentencia : switch completo
+switch (opcion) {
+    case 1:
+        println("uno");
+        break;
+    case 2:
+    case 3:
+        println("dos o tres");
+        break;
+    default:
+        println("otro");
+}
+
+@@@ OK sentencia : switch con cadenas y caracteres
+switch (letra) {
+    case 'a':
+        break;
+    case 'b': {
+        println("b");
+        break;
+    }
+}
+
+@@@ OK sentencia : switch vacio
+switch (x) {
+}
+
+@@@ OK sentencia : switch solo con default
+switch (x) {
+    default:
+        println("siempre");
+}
+
+@@@ OK sentencia : for clasico
+for (int i = 0; i < 10; i++) {
+    println(i);
+}
+
+@@@ OK sentencia : for infinito
+for (;;) {
+    break;
+}
+
+@@@ OK sentencia : for con varias variables y actualizaciones
+for (int i = 0, j = 10; i < j; i++, j--) {
+    println(i + j);
+}
+
+@@@ OK sentencia : for con variable ya declarada
+for (i = 0; i < n; i += 2) {
+}
+
+@@@ OK sentencia : for sin llaves
+for (int i = 0; i < 3; i++) suma += i;
+
+@@@ OK sentencia : for anidado recorriendo matriz
+for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 3; j++) {
+        m[i][j] = i * j;
+    }
+}
+
+@@@ OK sentencia : while
+while (i < 10) {
+    i++;
+}
+
+@@@ OK sentencia : while con break y continue
+while (true) {
+    i++;
+    if (i % 2 == 0) {
+        continue;
+    }
+    if (i > 10) {
+        break;
+    }
+}
+
+@@@ OK sentencia : do while
+do {
+    i--;
+} while (i > 0);
+
+@@@ OK sentencia : do while sin llaves
+do i--; while (i > 0);
+
+@@@ OK sentencia : return sin valor
+return;
+
+@@@ OK sentencia : return con valor
+return a + b;
+
+@@@ OK sentencia : println vacio
+println();
+
+@@@ OK sentencia : println y print con expresiones
+println("Total: " + total);
+print(1 + 2);
+print('c');
+
+@@@ OK sentencia : readln como expresion
+String linea = readln();
+x = readln();
+
+@@@ OK sentencia : readln como sentencia
+readln();
+
+@@@ OK sentencia : asignaciones compuestas
+a += 1;
+a -= 2;
+a *= 3;
+a /= 4;
+a %= 5;
+
+@@@ OK sentencia : asignacion encadenada
+a = b = c = 0;
+
+@@@ OK sentencia : incrementos y decrementos
+i++;
+i--;
+++i;
+--i;
+
+@@@ OK sentencia : acceso a arreglos de objetos
+personas[i].nombre = "Ana";
+personas[0].saludar();
+matriz[i][j] = matriz[j][i];
+
+@@@ OK sentencia : llamadas encadenadas
+lista.primero().siguiente().getValor();
+a.b.c.d = 1;
+
+@@@ OK sentencia : objeto nuevo como sentencia
+new Persona("Ana", 20);
+
+@@@ OK sentencia : llamar metodo de objeto recien creado
+new Contador().incrementar();
+
+@@@ OK sentencia : llamada a metodo propio
+calcular(1, 2);
+imprimir();
+
+@@@ OK sentencia : bloques anidados vacios
+{
+    {
+    }
+}
+
+@@@ OK sentencia : sentencias vacias
+;;;
+
+@@@ OK sentencia : expresion suelta como sentencia
+a + b;
+
+@@@ OK sentencia : metodo vacio
+
+@@@ SINTACTICO sentencia : falta punto y coma
+int a = 1
+
+@@@ SINTACTICO sentencia : if sin parentesis
+if x > 0 {
+}
+
+@@@ SINTACTICO sentencia : if sin condicion
+if () {
+}
+
+@@@ SINTACTICO sentencia : else sin if
+else {
+}
+
+@@@ SINTACTICO sentencia : elseif junto no existe
+if (a) {
+} elseif (b) {
+}
+
+@@@ SINTACTICO sentencia : while sin condicion
+while () {
+}
+
+@@@ SINTACTICO sentencia : do while sin punto y coma final
+do {
+} while (x)
+
+@@@ SINTACTICO sentencia : do sin while
+do {
+}
+
+@@@ SINTACTICO sentencia : for con solo un punto y coma
+for (int i = 0; i < 10) {
+}
+
+@@@ SINTACTICO sentencia : for con comas en vez de punto y coma
+for (int i = 0, i < 10, i++) {
+}
+
+@@@ SINTACTICO sentencia : foreach no existe
+for (int x : lista) {
+}
+
+@@@ SINTACTICO sentencia : case sin valor
+switch (x) {
+    case:
+        break;
+}
+
+@@@ SINTACTICO sentencia : case sin dos puntos
+switch (x) {
+    case 1
+        break;
+}
+
+@@@ SINTACTICO sentencia : sentencia antes del primer case
+switch (x) {
+    println("x");
+    case 1:
+        break;
+}
+
+@@@ SINTACTICO sentencia : switch sin llaves
+switch (x)
+    case 1: break;
+
+@@@ SINTACTICO sentencia : println con dos argumentos
+println(a, b);
+
+@@@ SINTACTICO sentencia : print sin argumento
+print();
+
+@@@ SINTACTICO sentencia : readln con argumento
+readln("nombre");
+
+@@@ SINTACTICO sentencia : break sin punto y coma
+while (true) {
+    break
+}
+
+@@@ SINTACTICO sentencia : return doble
+return return;
+
+@@@ SINTACTICO sentencia : asignacion sin valor
+a = ;
+
+@@@ SINTACTICO sentencia : operador de asignacion doble
+a = = 1;
+
+@@@ SINTACTICO sentencia : asignacion compuesta inexistente
+a **= 2;
+
+@@@ SINTACTICO sentencia : declaracion con tipo sin variable
+int = 5;
+
+@@@ SINTACTICO sentencia : identificador que empieza con numero
+int 1a = 3;
+
+@@@ SINTACTICO sentencia : llave sin cerrar en bloque
+{
+    int a = 1;
+
+@@@ SINTACTICO sentencia : parentesis sin cerrar
+println((a + b);
+
+@@@ OK sentencia : goto se lee como declaracion de tipo goto (lo rechaza el semantico)
+goto fin;
+
+@@@ SINTACTICO sentencia : try catch no existe
+try {
+} catch (Exception e) {
+}
+
+@@@ OK sentencia : var se lee como un tipo clase llamado var (lo rechaza el semantico)
+var x = 1;

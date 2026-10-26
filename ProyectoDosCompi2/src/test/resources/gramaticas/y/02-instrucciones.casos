@@ -1,0 +1,273 @@
+Y?: instrucciones dentro de una funcion (la plantilla agrega la sangria).
+
+@@@ OK instr : declaraciones de todos los tipos
+entero a
+flotante b = 1.5
+cadena c = "hola"
+caracter d = 'x'
+bool e = verdadero
+
+@@@ OK instr : declaracion de estructura
+Punto p
+
+@@@ OK instr : arreglo con lista
+entero v[3] = {1, 2, 3}
+
+@@@ OK instr : matriz con lista anidada
+entero m[2][2] = {{1, 2}, {3, 4}}
+
+@@@ OK instr : lista partida en varias lineas
+entero v[4] = {
+    1,
+    2,
+  3, 4
+}
+
+@@@ OK instr : indice partido en varias lineas
+v[
+  1
+] = 5
+
+@@@ OK instr : instrucciones con punto y coma opcional
+entero a = 1;
+a = a + 1;
+imprimir(a);
+
+@@@ OK instr : asignaciones
+a = 1
+v[i] = v[i - 1] * 2
+p.x = 3
+p.puntos[0].x = 1
+v = {1, 2, 3}
+
+@@@ OK instr : incremento y decremento
+i++
+j--
+v[0]++
+
+@@@ OK instr : llamada a funcion
+calcular(1, 2.5, "x")
+nada()
+
+@@@ OK instr : imprimir variantes
+imprimir()
+imprimir("hola")
+imprimir("a", b, 1 + 2)
+
+@@@ OK instr : leer como instruccion y expresion
+leer()
+cadena s = leer()
+x = leer()
+
+@@@ OK instr : retornar con y sin valor
+retornar
+
+@@@ OK instr : si entonces
+si (a > 0) entonces
+    imprimir("positivo")
+@@> tiene: Condicional
+
+@@@ OK instr : si con sino y contrario
+si (n == 1) entonces
+    imprimir("uno")
+sino (n == 2) entonces
+    imprimir("dos")
+sino (n == 3) entonces
+    imprimir("tres")
+contrario
+    imprimir("otro")
+@@> tiene: SinoSi, Contrario
+
+@@@ OK instr : si sin espacio antes del parentesis
+si(a) entonces
+    romper
+
+@@@ OK instr : si anidado
+si (a) entonces
+    si (b) entonces
+        imprimir("a y b")
+    contrario
+        imprimir("a")
+
+@@@ OK instr : elegir completo
+elegir(op) :
+    caso 1:
+        imprimir("uno")
+        romper
+    caso 2:
+        imprimir("dos")
+        romper
+    siempre:
+        imprimir("otro")
+@@> tiene: Elegir, Caso, CasoSiempre
+
+@@@ OK instr : elegir sin siempre
+elegir(letra):
+    caso 'a':
+        romper
+
+@@@ OK instr : elegir solo con siempre
+elegir(x):
+    siempre:
+        imprimir(x)
+
+@@@ OK instr : para completo
+para(entero i = 0; i < 10; i++):
+    imprimir(i)
+@@> tiene: CicloPara
+
+@@@ OK instr : para con asignacion y paso
+para(i = 0; i < n; i = i + 2):
+    continuar
+
+@@@ OK instr : para infinito
+para(;;):
+    romper
+
+@@@ OK instr : para anidado
+para(entero i = 0; i < 3; i++):
+    para(entero j = 0; j < 3; j++):
+        m[i][j] = i * j
+
+@@@ OK instr : mientras
+mientras(i < 10) hacer
+    i++
+@@> tiene: CicloMientras
+
+@@@ OK instr : hacer mientras
+hacer:
+    i--
+mientras(i > 0)
+@@> tiene: CicloHacer
+
+@@@ OK instr : hacer mientras con punto y coma
+hacer:
+    i--
+mientras(i > 0);
+
+@@@ OK instr : estructura definida dentro de la funcion
+estructura Temporal:
+    entero valor
+Temporal t
+t.valor = 1
+
+@@@ OK instr : comentario con codigo despues en la misma linea
+/* nota */ x = 1
+
+@@@ OK instr : lineas en blanco entre instrucciones
+a = 1
+
+b = 2
+
+
+c = 3
+
+@@@ SINTACTICO instr : dos instrucciones en una linea
+a = 1; b = 2
+
+@@@ SINTACTICO instr : declaracion multiple
+entero a, b
+
+@@@ SINTACTICO instr : asignacion compuesta no existe
+a += 1
+
+@@@ SINTACTICO instr : incremento prefijo
+++a
+
+@@@ SINTACTICO instr : asignacion sin valor
+a =
+
+@@@ SINTACTICO instr : si sin entonces
+si (a)
+    romper
+
+@@@ SINTACTICO instr : si sin parentesis
+si a entonces
+    romper
+
+@@@ SINTACTICO instr : si con dos puntos en vez de entonces
+si (a):
+    romper
+
+@@@ SINTACTICO instr : si con bloque vacio
+si (a) entonces
+
+@@@ SINTACTICO instr : sino sin condicion
+si (a) entonces
+    romper
+sino entonces
+    romper
+
+@@@ SINTACTICO instr : contrario con dos puntos
+si (a) entonces
+    romper
+contrario:
+    romper
+
+@@@ SINTACTICO instr : contrario sin si
+contrario
+    romper
+
+@@@ SINTACTICO instr : contrario antes de sino
+si (a) entonces
+    romper
+contrario
+    romper
+sino (b) entonces
+    romper
+
+@@@ SINTACTICO instr : elegir sin dos puntos
+elegir(x)
+    caso 1:
+        romper
+
+@@@ SINTACTICO instr : caso sin dos puntos
+elegir(x):
+    caso 1
+        romper
+
+@@@ SINTACTICO instr : siempre antes de caso
+elegir(x):
+    siempre:
+        romper
+    caso 1:
+        romper
+
+@@@ SINTACTICO instr : elegir sin casos
+elegir(x):
+
+@@@ SINTACTICO instr : para con comas
+para(entero i = 0, i < 3, i++):
+    romper
+
+@@@ SINTACTICO instr : para sin dos puntos
+para(entero i = 0; i < 3; i++)
+    romper
+
+@@@ SINTACTICO instr : mientras sin hacer
+mientras(x)
+    romper
+
+@@@ SINTACTICO instr : mientras con dos puntos
+mientras(x):
+    romper
+
+@@@ SINTACTICO instr : hacer sin mientras
+hacer:
+    romper
+
+@@@ SINTACTICO instr : imprimir sin parentesis
+imprimir "hola"
+
+@@@ SINTACTICO instr : leer con argumento
+leer(x)
+
+@@@ SINTACTICO instr : retornar dos valores
+retornar a, b
+
+@@@ SINTACTICO instr : llamada partida en varias lineas
+calcular(1,
+    2)
+
+@@@ SINTACTICO instr : lista de inicializacion en asignacion a expresion
+a = {1, 2} + 1

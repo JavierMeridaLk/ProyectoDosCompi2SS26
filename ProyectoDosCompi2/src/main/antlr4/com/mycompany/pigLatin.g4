@@ -39,10 +39,13 @@ declaracionVariable
     ;
 
 cuerpoDeclaracion
-    : tipo inicializador?          # declaracionConTipo       
-    | (VERUM | FALSUS)             # declaracionBooleana      
-    | creacionObjeto               # declaracionObjeto        
+    : tipo inicializador?               # declaracionConTipo
+    | (VERUM | FALSUS)                  # declaracionBooleana
+    | expresion DOS_PUNTOS IDENTIFICADOR  # declaracionObjeto
+    | creacionObjeto                      # declaracionObjetoSinTipo
     ;
+
+
 
 declaracionArreglo
     : SERIES IDENTIFICADOR dimension+ DOS_PUNTOS tipo inicializador? PUNTO_Y_COMA
@@ -199,6 +202,7 @@ literal
     | CARACTER
     | VERUM
     | FALSUS
+    | NULL
     ;
 
 
@@ -215,6 +219,7 @@ FALSUS      : 'falsus';
 BOOL        : 'bool';
 SERIES      : 'series';
 NOVUS       : 'novus';
+NULL        : 'null';
 SI          : 'si';
 ALITER      : 'aliter';
 DUM         : 'dum';

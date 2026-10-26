@@ -1,0 +1,285 @@
+Pig Latin: instrucciones de la seccion principal.
+
+@@@ OK instr : asignacion simple
+x = 5;
+@@> tiene: Asignacion
+
+@@@ OK instr : asignacion de nulo a objeto
+p = null;
+
+@@@ OK instr : asignacion de objeto nuevo
+p = novus Profesor(1, "Ana");
+
+@@@ OK instr : asignacion a elemento de arreglo
+a[i] = a[i - 1] + 1;
+
+@@@ OK instr : asignacion a elemento de matriz
+m[i][j] = 0;
+
+@@@ OK instr : asignacion a atributo
+p.nombre = "Luis";
+
+@@@ OK instr : asignacion a atributo profundo
+juego.palabra.letras[2] = 'x';
+
+@@@ OK instr : incremento y decremento
+i++;
+j--;
+@@> tiene: Incremento
+
+@@@ OK instr : incremento de elemento de arreglo
+a[0]++;
+
+@@@ OK instr : llamada a funcion
+imprimirMenu();
+@@> tiene: Llamada
+
+@@@ OK instr : llamada a metodo de objeto
+juego.dibujar();
+
+@@@ OK instr : llamada encadenada
+lista.primero().siguiente().imprimir();
+
+@@@ OK instr : lectura en variable con punto y coma
+nombre << ;
+@@> tiene: Lectura
+
+@@@ OK instr : lectura en variable sin punto y coma
+nombre <<
+
+@@@ OK instr : lectura sola
+<<
+
+@@@ OK instr : lectura en elemento de arreglo
+a[i] <<
+
+@@@ OK instr : escritura simple
+>> "hola";
+@@> tiene: Escritura
+
+@@@ OK instr : escritura encadenada
+>> "Total: " >> total >> " puntos";
+
+@@@ OK instr : escritura con expresiones
+>> a + b >> a * b >> (a > b);
+
+@@@ OK instr : si simple
+si (x > 0) {
+    >> "positivo";
+} finis;
+@@> tiene: Condicional
+
+@@@ OK instr : si con aliter
+si (x > 0) {
+    >> "positivo";
+} aliter {
+    >> "no positivo";
+} finis;
+@@> tiene: Sino
+
+@@@ OK instr : si con cadena de aliter si
+si (n == 1) {
+    >> "uno";
+} aliter (n == 2) {
+    >> "dos";
+} aliter (n == 3) {
+    >> "tres";
+} aliter {
+    >> "otro";
+} finis;
+@@> tiene: SinoSi, Sino
+
+@@@ OK instr : si con aliter si sin aliter final
+si (a) {
+} aliter (b) {
+} finis;
+
+@@@ OK instr : si con bloque vacio
+si (verum) {
+} finis;
+
+@@@ OK instr : si anidado
+si (a) {
+    si (b) {
+        >> "a y b";
+    } finis;
+} finis;
+
+@@@ OK instr : si comparando con nulo
+si (p == null) {
+    p = novus Persona() ;
+} finis;
+
+@@@ OK instr : dum
+dum (i < 10) {
+    i++;
+} finis;
+@@> tiene: CicloDum
+
+@@@ OK instr : dum con perge e interrumpe
+dum (verum) {
+    i++;
+    si (i == 5) {
+        perge;
+    } finis;
+    si (i > 9) {
+        interrumpe;
+    } finis;
+} finis;
+
+@@@ OK instr : facere dum
+facere {
+    i--;
+} dum (i > 0);
+@@> tiene: CicloFacere
+
+@@@ OK instr : per con declaracion
+per (esto i : numerus 0; i < 10; i++) {
+    >> i;
+}
+@@> tiene: CicloPer, InicioPerDeclaracion
+
+@@@ OK instr : per con finis opcional
+per (esto i : numerus 0; i < 10; i++) {
+    >> i;
+} finis;
+
+@@@ OK instr : per con asignacion
+per (i = 0; i < n; i = i + 2) {
+}
+@@> tiene: InicioPerAsignacion
+
+@@@ OK instr : per con decremento
+per (esto i : numerus 10; i > 0; i--) {
+}
+
+@@@ OK instr : per anidado
+per (esto i : numerus 0; i < 3; i++) {
+    per (esto j : numerus 0; j < 3; j++) {
+        m[i][j] = i * j;
+    }
+}
+
+@@@ OK instr : ciclos mezclados anidados
+dum (a) {
+    facere {
+        per (esto k : numerus 0; k < 2; k++) {
+            si (k == 1) {
+                interrumpe;
+            } finis;
+        }
+    } dum (b);
+} finis;
+
+@@@ OK instr : principal vacio
+
+@@@ SINTACTICO instr : asignacion sin punto y coma
+x = 5
+
+@@@ SINTACTICO instr : asignacion sin valor
+x = ;
+
+@@@ SINTACTICO instr : asignacion con lista de inicializacion
+a = {1, 2, 3};
+
+@@@ SINTACTICO instr : asignacion compuesta no existe
+x += 1;
+
+@@@ SINTACTICO instr : incremento prefijo no existe
+++i;
+
+@@@ SINTACTICO instr : incremento sin punto y coma
+i++
+
+@@@ SINTACTICO instr : llamada sobre objeto nuevo como instruccion
+novus Contador().incrementar();
+
+@@@ SINTACTICO instr : expresion suelta
+a + b;
+
+@@@ SINTACTICO instr : escritura sin valor
+>> ;
+
+@@@ SINTACTICO instr : escritura sin punto y coma
+>> "hola"
+
+@@@ SINTACTICO instr : escritura con comas
+>> "a", "b";
+
+@@@ SINTACTICO instr : lectura de expresion
+a + b <<
+
+@@@ SINTACTICO instr : si sin finis
+si (x) {
+}
+
+@@@ SINTACTICO instr : si sin llaves
+si (x) >> "x"; finis;
+
+@@@ SINTACTICO instr : si sin parentesis
+si x {
+} finis;
+
+@@@ SINTACTICO instr : si con FINIS en mayusculas
+si (x) {
+} FINIS;
+
+@@@ SINTACTICO instr : finis sin punto y coma
+si (x) {
+} finis
+
+@@@ SINTACTICO instr : aliter sin si
+aliter {
+} finis;
+
+@@@ SINTACTICO instr : aliter despues del aliter final
+si (a) {
+} aliter {
+} aliter (b) {
+} finis;
+
+@@@ SINTACTICO instr : dum sin finis
+dum (x) {
+}
+
+@@@ SINTACTICO instr : facere sin dum
+facere {
+}
+
+@@@ SINTACTICO instr : facere con finis
+facere {
+} dum (x) finis;
+
+@@@ SINTACTICO instr : per sin condicion
+per (esto i : numerus 0; ; i++) {
+}
+
+@@@ SINTACTICO instr : per con declaracion sin tipo
+per (esto i : 0; i < 3; i++) {
+}
+
+@@@ SINTACTICO instr : per con punto y coma en la declaracion
+per (esto i : numerus 0;; i < 3; i++) {
+}
+
+@@@ SINTACTICO instr : perge sin punto y coma
+dum (a) {
+    perge
+} finis;
+
+@@@ OK instr : break se lee como llamada a una variable llamada break (lo rechaza el semantico)
+dum (a) {
+    break;
+} finis;
+
+@@@ SINTACTICO instr : imprimir estilo y
+imprimir("hola");
+imprimir "x";
+
+@@@ SINTACTICO instr : bloque suelto
+{
+    x = 1;
+}
+
+@@@ SINTACTICO instr : return no existe
+retornar x;

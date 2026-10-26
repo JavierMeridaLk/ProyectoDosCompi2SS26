@@ -1,0 +1,86 @@
+Y?: expresiones. Se escriben dentro de "retornar <expr>".
+
+@@@ OK expr : literales
+verdadero || falso
+@@> forma: O(Literal,Literal)
+
+@@@ OK expr : multiplicacion antes que suma
+1 + 2 * 3
+@@> forma: Aditiva(Literal,Multiplicativa(Literal,Literal))
+
+@@@ OK expr : parentesis con modulo
+(a + b) % c
+@@> forma: Multiplicativa(Parentesis(Aditiva(Acceso,Acceso)),Acceso)
+
+@@@ OK expr : resta asociativa a la izquierda
+a - b - c
+@@> forma: Aditiva(Aditiva(Acceso,Acceso),Acceso)
+
+@@@ OK expr : modulo asociativo a la izquierda
+a % b % c
+@@> forma: Multiplicativa(Multiplicativa(Acceso,Acceso),Acceso)
+
+@@@ OK expr : negacion y precedencia logica
+!a || b && c
+@@> forma: O(Unaria(Acceso),Y(Acceso,Acceso))
+
+@@@ OK expr : menos unario sobre llamada
+-f(x)
+@@> forma: Unaria(Llamada(Acceso))
+
+@@@ OK expr : leer como expresion
+leer()
+@@> forma: Leer
+
+@@@ OK expr : indice con expresion y atributo
+v[i * 2].campo
+@@> forma: Acceso(Multiplicativa(Acceso,Literal))
+@@> tiene: SufijoIndice, SufijoAtributo
+
+@@@ OK expr : llamadas anidadas
+f(a, g(b))
+@@> forma: Llamada(Acceso,Llamada(Acceso))
+
+@@@ OK expr : relacional comparado con literal
+a <= b == verdadero
+@@> forma: Igualdad(Relacional(Acceso,Acceso),Literal)
+
+@@@ OK expr : expresion larga
+(a + b) * c - d / e % f >= g && !h || i != j
+@@> forma: O(Y(Relacional(Aditiva(Multiplicativa(Parentesis(Aditiva(Acceso,Acceso)),Acceso),Multiplicativa(Multiplicativa(Acceso,Acceso),Acceso)),Acceso),Unaria(Acceso)),Igualdad(Acceso,Acceso))
+
+@@@ OK expr : cadena con escapes
+"tab\t \"comillas\" \\"
+
+@@@ OK expr : caracter escapado
+'\n'
+
+@@@ SINTACTICO expr : operador al final
+a +
+
+@@@ SINTACTICO expr : parentesis sin cerrar
+(a + b
+
+@@@ LEXICO expr : ternario no existe (el signo ? no es un token de Y?)
+a ? b : c
+
+@@@ SINTACTICO expr : llamada a metodo de estructura no existe
+p.calcular()
+
+@@@ SINTACTICO expr : objeto nuevo no existe
+novus Punto()
+
+@@@ SINTACTICO expr : modulo pegado a palabra de seccion
+a%funciones
+
+@@@ LEXICO expr : and de bits
+a & b
+
+@@@ LEXICO expr : cadena sin cerrar
+"hola
+
+@@@ LEXICO expr : caracter con dos letras
+'ab'
+
+@@@ LEXICO expr : simbolo invalido
+a $ b

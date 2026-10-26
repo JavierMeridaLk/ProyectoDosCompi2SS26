@@ -2,6 +2,13 @@ package com.mycompany.proyectodoscompi2.analizador;
 
 import java.util.Optional;
 
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.Lexer;
+
+import com.mycompany.ZetarianoLexer;
+import com.mycompany.pigLatinLexer;
+import com.mycompany.yLexer;
+
 public enum Lenguaje {
     PIG_LATIN("pig", "Pig Latin"),
     Y("y", "Y?"),
@@ -17,6 +24,15 @@ public enum Lenguaje {
 
     public String getNombre() {
         return nombre;
+    }
+
+    // Lexer generado por ANTLR para este lenguaje
+    public Lexer crearLexer(CharStream entrada) {
+        return switch (this) {
+            case PIG_LATIN -> new pigLatinLexer(entrada);
+            case Y -> new yLexer(entrada);
+            case ZETARIANO -> new ZetarianoLexer(entrada);
+        };
     }
 
     //Detecta el lenguaje por la extension del archivo

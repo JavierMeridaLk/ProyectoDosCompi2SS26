@@ -1,0 +1,191 @@
+Y?: indentacion, errores lexicos y programas completos.
+
+@@@ OK archivo : bloques que cierran varios niveles a la vez
+%funciones
+definir f():
+    si (a) entonces
+        si (b) entonces
+            si (c) entonces
+                imprimir("abc")
+definir g():
+    retornar
+
+@@@ OK archivo : sangria de dos espacios consistente
+%funciones
+definir f():
+  si (a) entonces
+    imprimir("a")
+  retornar
+
+@@@ OK archivo : tab equivale a cuatro espacios
+%funciones
+definir f():
+	entero a = 1
+    a = 2
+
+@@@ OK archivo : comentario de bloque de varias lineas entre instrucciones
+%funciones
+definir f():
+    a = 1
+    /* comentario
+  con sangria
+          rara */
+    b = 2
+
+@@@ OK archivo : saltos de linea de windows
+@@> crlf
+%funciones
+definir f():
+    si (a) entonces
+        imprimir("a")
+    retornar
+
+@@@ ERROR archivo : sangria que no coincide con ningun bloque
+%funciones
+definir f():
+        a = 1
+    b = 2
+
+@@@ ERROR archivo : sangria inesperada dentro del bloque
+%funciones
+definir f():
+    a = 1
+        b = 2
+
+@@@ ERROR archivo : instruccion sin sangria despues de definir
+%funciones
+definir f():
+a = 1
+
+@@@ ERROR archivo : sino con sangria distinta al si
+%funciones
+definir f():
+    si (a) entonces
+        romper
+      sino (b) entonces
+        romper
+
+@@@ LEXICO archivo : comentario de bloque sin cerrar
+%funciones
+definir f():
+    retornar
+/* sin cerrar
+
+@@@ LEXICO instr : cadena sin cerrar
+imprimir("hola)
+
+@@@ LEXICO instr : simbolo invalido
+entero a = 5 @ 2
+
+@@@ LEXICO instr : numeral como comentario no existe
+# comentario estilo python
+a = 1
+
+@@@ LEXICO instr : letra con tilde en identificador
+entero año = 2026
+
+@@@ OK instr : tildes dentro de cadenas
+imprimir("Año: ñandú, ¿qué?")
+
+@@@ ERROR archivo : muchos errores se recuperan sin excepcion
+%estructuras
+estructura P
+    entero x =
+%funciones
+definir f(a:
+    si a entonces
+        imprimir("x
+    elegir(x)
+        caso:
+definir
+
+@@@ OK archivo : calculadora completa
+%estructuras
+estructura Historial:
+    entero cantidad
+    flotante valores[10]
+
+%funciones
+
+/* ---------- Operaciones basicas ---------- */
+
+definir sumar(flotante a, flotante b) -> flotante:
+    retornar a + b
+
+definir dividir(flotante a, flotante b) -> flotante:
+    si(b == 0) entonces
+        imprimir("Error: division entre cero, se devuelve 0")
+        retornar 0.0
+    retornar a / b
+
+// Despacha las operaciones usando elegir
+definir aplicar(entero op, flotante a, flotante b) -> flotante:
+    flotante r = 0.0
+    elegir(op) :
+        caso 1:
+            r = sumar(a, b)
+            romper
+        caso 4:
+            r = dividir(a, b)
+            romper
+        siempre:
+            imprimir("Operacion desconocida")
+            romper
+    retornar r
+
+definir potencia(flotante base, entero exp) -> flotante:
+    flotante r = 1.0
+    entero e = exp
+    si(e < 0) entonces
+        e = 0 - e
+    para(entero i = 0; i < e; i++):
+        r = r * base
+    si(exp < 0) entonces
+        retornar 1.0 / r
+    retornar r
+
+definir factorial(entero n) -> entero:
+    si(n < 2) entonces
+        retornar 1
+    retornar n * factorial(n - 1)
+
+definir esPrimo(entero n) -> bool:
+    si(n < 2) entonces
+        retornar falso
+    entero d = 2
+    mientras(d * d < n + 1) hacer
+        si(n % d == 0) entonces
+            retornar falso
+        d++
+    retornar verdadero
+
+definir registrar({}Historial h, flotante valor):
+    si (h.cantidad < 10) entonces
+        h.valores[h.cantidad] = valor
+        h.cantidad++
+    contrario
+        imprimir("Historial lleno")
+
+@@@ OK archivo : matrices con parametros arreglo
+%funciones
+definir imprimirMatriz([][]entero m, entero n):
+    para(entero i = 0; i < n; i++):
+        cadena fila = ""
+        para(entero j = 0; j < n; j++):
+            fila = fila + m[i][j] + " "
+        imprimir(fila)
+
+definir transponer([][]entero m, entero n) -> entero[][]:
+    entero r[3][3]
+    para(entero i = 0; i < n; i++):
+        para(entero j = 0; j < n; j++):
+            r[j][i] = m[i][j]
+    retornar r
+
+definir menu() -> entero:
+    entero opcion = 0
+    hacer:
+        imprimir("1. Transponer", "2. Salir")
+        opcion = leer()
+    mientras(opcion < 1 || opcion > 2)
+    retornar opcion

@@ -1,0 +1,221 @@
+Y?: secciones, estructuras y definicion de funciones.
+(Y? no cambia en el proyecto 2; estos casos cuidan que siga igual.)
+
+@@@ OK archivo : solo seccion de funciones vacia
+%funciones
+
+@@@ OK archivo : secciones vacias
+%estructuras
+%funciones
+
+@@@ OK archivo : lineas en blanco y comentarios al inicio
+// comentario inicial
+
+/* bloque */
+%funciones
+
+@@@ OK archivo : estructura simple
+%estructuras
+estructura Punto:
+    entero x
+    entero y
+%funciones
+@@> tiene: DefinicionEstructura, AtributoEstructura
+
+@@@ OK archivo : estructura con arreglos y otra estructura
+%estructuras
+estructura Historial:
+    entero cantidad
+    flotante valores[10]
+    cadena nombres[3][2]
+    Punto origen
+%funciones
+
+@@@ OK archivo : varias estructuras
+%estructuras
+estructura A:
+    entero x
+estructura B:
+    A a
+    bool activo
+estructura C:
+    caracter letra
+%funciones
+
+@@@ OK archivo : estructura con lineas en blanco y comentarios internos
+%estructuras
+estructura P:
+
+    entero x   // la x
+        // comentario con otra sangria (se ignora)
+    /* otro */
+    entero y
+%funciones
+
+@@@ OK archivo : funcion sin parametros ni retorno
+%funciones
+definir saludar():
+    imprimir("hola")
+@@> tiene: DefinicionFuncion
+
+@@@ OK funcion : funcion con retorno
+definir sumar(entero a, entero b) -> entero:
+    retornar a + b
+
+@@@ OK funcion : funcion que retorna arreglo
+definir crear() -> entero[]:
+    entero v[3] = {1, 2, 3}
+    retornar v
+
+@@@ OK funcion : funcion que retorna matriz de flotantes
+definir identidad(entero n) -> flotante[][]:
+    flotante m[3][3]
+    retornar m
+
+@@@ OK funcion : funcion que retorna estructura
+definir origen() -> Punto:
+    Punto p
+    retornar p
+
+@@@ OK funcion : parametro arreglo
+definir total([]entero datos, entero n) -> entero:
+    retornar 0
+@@> tiene: ParametroArreglo
+
+@@@ OK funcion : parametro matriz
+definir traza([][]flotante m, entero n) -> flotante:
+    retornar 0.0
+
+@@@ OK funcion : parametro estructura
+definir mover({}Punto p, entero dx):
+    p.x = p.x + dx
+@@> tiene: ParametroEstructura
+
+@@@ OK funcion : parametro de tipo estructura por valor
+definir mostrar(Punto p):
+    imprimir(p.x, p.y)
+@@> tiene: ParametroValor
+
+@@@ OK funcion : todos los tipos de parametro
+definir f(entero a, flotante b, cadena c, caracter d, bool e, []cadena f, {}P g):
+    retornar
+
+@@@ OK archivo : varias funciones seguidas
+%funciones
+definir a():
+    retornar
+definir b():
+    retornar
+
+definir c():
+    retornar
+
+@@@ OK archivo : funcion con retorno de linea final sin salto
+%funciones
+definir f() -> entero:
+    retornar 1
+
+@@@ OK archivo : sangria con tabuladores
+%funciones
+definir f():
+	entero a = 1
+	si (a > 0) entonces
+		imprimir(a)
+
+@@@ SINTACTICO archivo : archivo vacio
+
+@@@ SINTACTICO archivo : falta seccion de funciones
+%estructuras
+estructura P:
+    entero x
+
+@@@ SINTACTICO archivo : secciones en orden invertido
+%funciones
+%estructuras
+
+@@@ SINTACTICO archivo : seccion repetida
+%funciones
+%funciones
+
+@@@ SINTACTICO archivo : funcion antes de la seccion
+definir f():
+    retornar
+%funciones
+
+@@@ SINTACTICO archivo : estructura en la seccion de funciones al nivel superior
+%funciones
+estructura P:
+    entero x
+
+@@@ SINTACTICO archivo : estructura sin atributos
+%estructuras
+estructura Vacia:
+%funciones
+
+@@@ SINTACTICO archivo : estructura sin dos puntos
+%estructuras
+estructura P
+    entero x
+%funciones
+
+@@@ SINTACTICO archivo : atributo sin tipo
+%estructuras
+estructura P:
+    x
+%funciones
+
+@@@ SINTACTICO archivo : atributo con valor inicial
+%estructuras
+estructura P:
+    entero x = 0
+%funciones
+
+@@@ SINTACTICO archivo : atributo sin sangria
+%estructuras
+estructura P:
+entero x
+%funciones
+
+@@@ SINTACTICO funcion : funcion sin cuerpo
+definir f():
+
+@@@ SINTACTICO funcion : funcion sin dos puntos
+definir f()
+    retornar
+
+@@@ SINTACTICO funcion : funcion sin parentesis
+definir f:
+    retornar
+
+@@@ SINTACTICO funcion : flecha sin tipo
+definir f() ->:
+    retornar
+
+@@@ SINTACTICO funcion : tipo de retorno sin flecha
+definir f() entero:
+    retornar 1
+
+@@@ SINTACTICO funcion : parametro sin tipo
+definir f(a):
+    retornar
+
+@@@ SINTACTICO funcion : parametro con corchetes despues
+definir f(entero a[]):
+    retornar
+
+@@@ SINTACTICO funcion : coma colgante en parametros
+definir f(entero a,):
+    retornar
+
+@@@ SINTACTICO funcion : cuerpo sin sangria
+definir f():
+retornar
+
+@@@ SINTACTICO funcion : def estilo python
+def f():
+    retornar
+
+@@@ SINTACTICO funcion : funcion anidada
+definir f():
+    definir g():
+        retornar

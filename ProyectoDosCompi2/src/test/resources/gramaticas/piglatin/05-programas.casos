@@ -1,0 +1,149 @@
+Pig Latin: programas completos, vinculados con clases .z y funciones .y.
+
+@@@ OK archivo : programa del enunciado con objetos tipados
+import modelos.Persona.z;
+import modelos.Profesor.z;
+VARIABILES>
+esto miObjeto : novus Persona(12, "Profesor") : Persona ;
+// la clase se toma en su forma Persona, porque es el tipo explícito
+esto otroObjeto : novus Profesor(12, miObjeto, novus Persona()) : Persona ;
+// Ahora las clases pueden ser nulas
+esto tercero : null : Persona ;
+MAIOR>
+>> miObjeto.getNombre();
+otroObjeto.saludar();
+si (tercero == null) {
+    tercero = novus Persona(30, "Alumno");
+} finis;
+>> tercero.getNombre();
+FINIS;
+
+@@@ OK archivo : polimorfismo con impresoras
+import clases.Impresora.z
+import clases.ImpresoraPDF.z
+import clases.ImpresoraExcel.z
+VARIABILES>
+series impresoras[3] : Impresora;
+esto actual : null : Impresora;
+MAIOR>
+impresoras[0] = novus Impresora();
+impresoras[1] = novus ImpresoraPDF();
+impresoras[2] = novus ImpresoraExcel();
+per (esto i : numerus 0; i < 3; i++) {
+    actual = impresoras[i];
+    actual.imprimir();
+}
+FINIS;
+
+@@@ OK archivo : lista de objetos con nulos
+import estructuras.Nodo.z
+import estructuras.Lista.z
+VARIABILES>
+esto lista : novus Lista() : Lista;
+esto nodo : null : Nodo;
+esto i : numerus 0;
+MAIOR>
+dum (i < 5) {
+    lista.agregar(i * 10);
+    i++;
+} finis;
+nodo = lista.primero();
+dum (nodo != null) {
+    >> nodo.valor;
+    nodo = nodo.siguiente;
+} finis;
+FINIS;
+
+@@@ OK archivo : banco mezclando z y y
+import banco.Cuenta.z;
+import banco.CuentaCorriente.z;
+import lib.reportes.y;
+VARIABILES>
+esto cuenta : novus CuentaCorriente("Ana", 500.0, 100.0) : Cuenta;
+esto monto : decimalis 0.0;
+esto opcion : numerus 0;
+esto seguir : bool verum;
+MAIOR>
+facere {
+    >> "1. Depositar  2. Retirar  3. Salir";
+    opcion <<
+    si (opcion == 1) {
+        >> "Monto:";
+        monto <<
+        cuenta.depositar(monto);
+    } aliter (opcion == 2) {
+        >> "Monto:";
+        monto <<
+        si (non cuenta.retirar(monto)) {
+            >> "No se pudo retirar";
+        } finis;
+    } aliter {
+        seguir = falsus;
+    } finis;
+    imprimirResumen(cuenta.getSaldo(), opcion);
+} dum (seguir);
+FINIS;
+
+@@@ OK archivo : matrices con funciones y
+import lib.matrices.y
+VARIABILES>
+series a[3][3] : numerus {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+series b[3][3] : numerus;
+esto traza : numerus 0;
+MAIOR>
+per (esto i : numerus 0; i < 3; i++) {
+    per (esto j : numerus 0; j < 3; j++) {
+        b[j][i] = a[i][j];
+        si (i == j) {
+            traza = traza + a[i][j];
+        } finis;
+    }
+}
+imprimirMatriz(b, 3);
+>> "Traza: " >> traza;
+FINIS;
+
+@@@ OK archivo : estructuras de y como variables
+import lib.Estadisticas.y
+VARIABILES>
+series puntajes[5] : numerus {0, 0, 0, 0, 0};
+esto marcador : Marcador {0, 0, 0, 0, 0, puntajes};
+esto resumen : Resumen;
+MAIOR>
+marcador.ganadas = marcador.ganadas + 1;
+resumen = calcularResumen(marcador);
+>> resumen.promedio;
+FINIS;
+
+@@@ ERROR archivo : varios errores que se recuperan sin excepcion
+VARIABILES>
+esto x : numerus = 5;
+esto p : null ;
+MAIOR>
+x = ;
+si (x {
+} finis;
+>> "sin cerrar;
+FINIS;
+
+@@@ LEXICO archivo : error lexico dentro del principal
+MAIOR>
+esto x : numerus 5 % 2;
+FINIS;
+
+@@@ SINTACTICO archivo : objeto tipado sin punto y coma rompe la siguiente linea
+VARIABILES>
+esto a : novus A() : A
+esto b : numerus 1;
+MAIOR>
+FINIS;
+
+@@@ OK archivo : saltos de linea de windows
+@@> crlf
+## comentario
+   de bloque ##
+VARIABILES>
+esto p : null : Persona;
+MAIOR>
+>> "hola";
+FINIS;

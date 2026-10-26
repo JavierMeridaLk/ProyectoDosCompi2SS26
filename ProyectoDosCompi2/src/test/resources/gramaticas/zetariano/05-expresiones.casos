@@ -1,0 +1,381 @@
+Zetariano: expresiones. Se escriben dentro de "return <expr>;".
+"forma" muestra el arbol solo con las alternativas de expresion, para revisar
+precedencia y asociatividad.
+
+@@@ OK expr : literal entero
+42
+@@> forma: Primaria
+
+@@@ OK expr : entero con ceros a la izquierda
+007
+
+@@@ OK expr : decimal
+3.14
+
+@@@ OK expr : caracter
+'a'
+
+@@@ OK expr : caracter comilla escapada
+'\''
+
+@@@ OK expr : caracter barra escapada
+'\\'
+
+@@@ OK expr : cadena vacia
+""
+
+@@@ OK expr : cadena con escapes
+"linea\tcon\ttabs\n"
+
+@@@ OK expr : verdadero falso y nulo
+true || false || null == null
+
+@@@ OK expr : multiplicacion antes que suma
+1 + 2 * 3
+@@> forma: Aditiva(Primaria,Multiplicativa(Primaria,Primaria))
+
+@@@ OK expr : parentesis cambian la precedencia
+(1 + 2) * 3
+@@> forma: Multiplicativa(Primaria(Aditiva(Primaria,Primaria)),Primaria)
+
+@@@ OK expr : resta asociativa a la izquierda
+1 - 2 - 3
+@@> forma: Aditiva(Aditiva(Primaria,Primaria),Primaria)
+
+@@@ OK expr : division asociativa a la izquierda
+8 / 4 / 2
+@@> forma: Multiplicativa(Multiplicativa(Primaria,Primaria),Primaria)
+
+@@@ OK expr : modulo y multiplicacion mismo nivel
+a % b * c
+@@> forma: Multiplicativa(Multiplicativa(Primaria,Primaria),Primaria)
+
+@@@ OK expr : concatenacion asociativa a la izquierda
+"x" + 1 + 2
+@@> forma: Aditiva(Aditiva(Primaria,Primaria),Primaria)
+
+@@@ OK expr : asignacion asociativa a la derecha
+a = b = c
+@@> forma: Asignacion(Primaria,Asignacion(Primaria,Primaria))
+
+@@@ OK expr : asignacion compuesta dentro de asignacion
+a = b += c
+@@> forma: Asignacion(Primaria,Asignacion(Primaria,Primaria))
+
+@@@ OK expr : asignacion compuesta con expresion
+x += y * 2
+@@> forma: Asignacion(Primaria,Multiplicativa(Primaria,Primaria))
+
+@@@ OK expr : and antes que or
+a || b && c
+@@> forma: O(Primaria,Y(Primaria,Primaria))
+
+@@@ OK expr : and antes que or (al reves)
+a && b || c
+@@> forma: O(Y(Primaria,Primaria),Primaria)
+
+@@@ OK expr : relacional antes que igualdad
+a == b < c
+@@> forma: Igualdad(Primaria,Relacional(Primaria,Primaria))
+
+@@@ OK expr : dos relacionales comparados
+a < b == c > d
+@@> forma: Igualdad(Relacional(Primaria,Primaria),Relacional(Primaria,Primaria))
+
+@@@ OK expr : suma antes que comparacion
+a + b == c + d
+@@> forma: Igualdad(Aditiva(Primaria,Primaria),Aditiva(Primaria,Primaria))
+
+@@@ OK expr : suma antes que relacional
+a + 1 <= b * 2
+@@> forma: Relacional(Aditiva(Primaria,Primaria),Multiplicativa(Primaria,Primaria))
+
+@@@ OK expr : negacion antes que and
+!a && b
+@@> forma: Y(Unaria(Primaria),Primaria)
+
+@@@ OK expr : menos unario antes que multiplicacion
+-a * b
+@@> forma: Multiplicativa(Unaria(Primaria),Primaria)
+
+@@@ OK expr : doble menos unario con espacio
+- -a
+@@> forma: Unaria(Unaria(Primaria))
+
+@@@ OK expr : mas unario
++a
+@@> forma: Unaria(Primaria)
+
+@@@ OK expr : doble negacion
+!!a
+@@> forma: Unaria(Unaria(Primaria))
+
+@@@ OK expr : unario sobre atributo
+-a.b
+@@> forma: Unaria(Atributo(Primaria))
+
+@@@ OK expr : negacion de llamada a metodo
+!obj.activo()
+@@> forma: Unaria(LlamadaMetodo(Primaria))
+
+@@@ OK expr : ternario simple
+a > b ? a : b
+@@> forma: Ternaria(Relacional(Primaria,Primaria),Primaria,Primaria)
+
+@@@ OK expr : ternario anidado a la derecha
+a ? b : c ? d : e
+@@> forma: Ternaria(Primaria,Primaria,Ternaria(Primaria,Primaria,Primaria))
+
+@@@ OK expr : ternario dentro de asignacion
+a = b ? c : d
+@@> forma: Asignacion(Primaria,Ternaria(Primaria,Primaria,Primaria))
+
+@@@ OK expr : ternario con asignacion en medio
+a ? b = c : d
+@@> forma: Ternaria(Primaria,Asignacion(Primaria,Primaria),Primaria)
+
+@@@ OK expr : postfijo mas prefijo
+i++ + ++j
+@@> forma: Aditiva(Postfija(Primaria),Unaria(Primaria))
+
+@@@ OK expr : postfijo sobre atributo
+a.b++
+@@> forma: Postfija(Atributo(Primaria))
+
+@@@ OK expr : postfijo sobre indice
+arr[i]--
+@@> forma: Postfija(Indice(Primaria,Primaria))
+
+@@@ OK expr : atributos encadenados
+a.b.c
+@@> forma: Atributo(Atributo(Primaria))
+
+@@@ OK expr : atributo de un resultado de metodo
+a.m(1).n
+@@> forma: Atributo(LlamadaMetodo(Primaria,Primaria))
+
+@@@ OK expr : metodo de un atributo de this
+this.a.b()
+@@> forma: LlamadaMetodo(Atributo(Primaria))
+
+@@@ OK expr : indices encadenados
+a[1][2]
+@@> forma: Indice(Indice(Primaria,Primaria),Primaria)
+
+@@@ OK expr : indice con expresion
+a[i + 1]
+@@> forma: Indice(Primaria,Aditiva(Primaria,Primaria))
+
+@@@ OK expr : atributo de elemento de arreglo
+lista[0].nombre
+@@> forma: Atributo(Indice(Primaria,Primaria))
+
+@@@ OK expr : indice sobre resultado de metodo
+obtener()[2]
+@@> forma: Indice(Primaria,Primaria)
+
+@@@ OK expr : llamada propia con argumentos
+f(a + b, c)
+@@> forma: Primaria(Aditiva(Primaria,Primaria),Primaria)
+@@> tiene: PrimarioLlamada
+
+@@@ OK expr : llamada sin argumentos
+f()
+@@> forma: Primaria
+
+@@@ OK expr : llamadas anidadas como argumento
+f(g(h(1)))
+@@> forma: Primaria(Primaria(Primaria(Primaria)))
+
+@@@ OK expr : atributo de super mas atributo de this
+super.x + this.y
+@@> forma: Aditiva(Primaria,Atributo(Primaria))
+
+@@@ OK expr : metodo de super con argumentos
+super.m(a, b * c)
+@@> forma: Primaria(Primaria,Multiplicativa(Primaria,Primaria))
+@@> tiene: PrimarioSuperMetodo
+
+@@@ OK expr : objeto nuevo y llamada
+new Persona().getNombre()
+@@> forma: LlamadaMetodo(Primaria)
+@@> tiene: PrimarioNuevoObjeto
+
+@@@ OK expr : objeto nuevo con argumentos
+new Persona("Ana", 20 + 1)
+@@> forma: Primaria(Primaria,Aditiva(Primaria,Primaria))
+
+@@@ OK expr : objetos nuevos anidados
+new Nodo(new Nodo(null))
+@@> forma: Primaria(Primaria(Primaria))
+
+@@@ OK expr : arreglo nuevo con dimensiones calculadas
+new int[n + 1][m]
+@@> forma: Primaria(Aditiva(Primaria,Primaria),Primaria)
+@@> tiene: PrimarioNuevoArreglo
+@@> notiene: ExpresionIndice
+
+@@@ OK expr : arreglo nuevo de objetos
+new Persona[10]
+@@> tiene: PrimarioNuevoArreglo
+
+@@@ OK expr : arreglo nuevo con inicializador
+new int[]{1, 2}
+@@> forma: Primaria(Primaria,Primaria)
+@@> tiene: PrimarioNuevoArregloInicializado
+
+@@@ OK expr : matriz nueva con inicializador
+new String[][]{{"a"}, {"b", "c"}}
+@@> tiene: PrimarioNuevoArregloInicializado
+
+@@@ OK expr : readln
+readln()
+@@> tiene: PrimarioReadln
+
+@@@ OK expr : comparacion con null y acceso
+a != null && a.b
+@@> forma: Y(Igualdad(Primaria,Primaria),Atributo(Primaria))
+
+@@@ OK expr : expresion larga mezclada
+(a + b) * c - d / e % f >= g && !h || i == j ? k : l
+@@> forma: Ternaria(O(Y(Relacional(Aditiva(Multiplicativa(Primaria(Aditiva(Primaria,Primaria)),Primaria),Multiplicativa(Multiplicativa(Primaria,Primaria),Primaria)),Primaria),Unaria(Primaria)),Igualdad(Primaria,Primaria)),Primaria,Primaria)
+
+@@@ OK expr : parentesis redundantes
+((((x))))
+@@> forma: Primaria(Primaria(Primaria(Primaria(Primaria))))
+
+@@@ SINTACTICO expr : operador al final
+1 +
+
+@@@ SINTACTICO expr : operador al inicio
+* 2
+
+@@@ SINTACTICO expr : parentesis sin cerrar
+(1 + 2
+
+@@@ SINTACTICO expr : parentesis de mas
+1 + 2)
+
+@@@ SINTACTICO expr : ternario sin dos puntos
+a ? b
+
+@@@ SINTACTICO expr : ternario sin valor verdadero
+a ? : b
+
+@@@ SINTACTICO expr : punto doble
+a..b
+
+@@@ SINTACTICO expr : punto al final
+a.
+
+@@@ SINTACTICO expr : indice vacio
+a[]
+
+@@@ SINTACTICO expr : indice sin cerrar
+a[1
+
+@@@ SINTACTICO expr : coma colgante en argumentos
+f(1,)
+
+@@@ SINTACTICO expr : coma al inicio de argumentos
+f(,1)
+
+@@@ SINTACTICO expr : new sin parentesis
+new Persona
+
+@@@ SINTACTICO expr : new de un numero
+new 5()
+
+@@@ SINTACTICO expr : new arreglo sin tamano ni inicializador
+new int[]
+
+@@@ SINTACTICO expr : new arreglo con tamano e inicializador
+new int[3]{1, 2, 3}
+
+@@@ SINTACTICO expr : new con tipo primitivo como objeto
+new int()
+
+@@@ SINTACTICO expr : dos operandos sin operador
+a b
+
+@@@ SINTACTICO expr : dos numeros seguidos
+1 2
+
+@@@ SINTACTICO expr : igualdad sin operando izquierdo
+== a
+
+@@@ SINTACTICO expr : menor mayor separados
+a < > b
+
+@@@ SINTACTICO expr : and seguido de or
+a && || b
+
+@@@ SINTACTICO expr : asignacion sin valor
+a =
+
+@@@ SINTACTICO expr : cast no existe
+(Persona) x
+
+@@@ SINTACTICO expr : instanceof no existe
+a instanceof B
+
+@@@ SINTACTICO expr : desplazamiento no existe
+a >> 2
+
+@@@ SINTACTICO expr : potencia no existe
+a ** b
+
+@@@ SINTACTICO expr : decimal sin parte entera
+.5
+
+@@@ SINTACTICO expr : decimal sin parte decimal
+5.
+
+@@@ SINTACTICO expr : notacion cientifica no existe
+1e10
+
+@@@ SINTACTICO expr : hexadecimal no existe
+0x1F
+
+@@@ SINTACTICO expr : postfijo seguido de identificador
+a++ b
+
+@@@ SINTACTICO expr : lambda no existe
+(a) -> a + 1
+
+@@@ LEXICO expr : and de bits no existe
+a & b
+
+@@@ LEXICO expr : or de bits no existe
+a | b
+
+@@@ LEXICO expr : xor no existe
+a ^ b
+
+@@@ LEXICO expr : complemento no existe
+~a
+
+@@@ LEXICO expr : caracter con dos letras
+'ab'
+
+@@@ LEXICO expr : caracter vacio
+''
+
+@@@ LEXICO expr : cadena sin cerrar
+"hola
+
+@@@ LEXICO expr : cadena con salto de linea
+"linea uno
+linea dos"
+
+@@@ LEXICO expr : simbolo invalido en identificador
+precio$
+
+@@@ LEXICO expr : numeral no existe
+a # b
+
+@@@ LEXICO expr : acento grave
+`a`
+
+@@@ LEXICO expr : comillas simples para cadena
+'hola mundo'

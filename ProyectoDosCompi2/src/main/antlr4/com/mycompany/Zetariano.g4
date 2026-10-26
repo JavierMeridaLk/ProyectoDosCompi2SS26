@@ -28,17 +28,25 @@ miembro
     | declaracionMetodo
     ;
 
-// String nombre;   int a = 1, b;
 declaracionAtributo
     : modificador* tipo declaradorVariable (COMA declaradorVariable)* PUNTO_Y_COMA
     ;
 
 declaracionConstructor
-    : modificador* IDENTIFICADOR PARENTESIS_IZQUIERDO parametros? PARENTESIS_DERECHO bloque
+    : modificador* IDENTIFICADOR PARENTESIS_IZQUIERDO parametros? PARENTESIS_DERECHO cuerpoConstructor
     ;
 
+cuerpoConstructor
+    : LLAVE_IZQUIERDA llamadaSuper? sentencia* LLAVE_DERECHA
+    ;
+
+llamadaSuper
+    : SUPER PARENTESIS_IZQUIERDO argumentos? PARENTESIS_DERECHO PUNTO_Y_COMA
+    ;
+
+// @Override es obligatorio para sobrescribir un metodo del padre
 declaracionMetodo
-    : modificador* tipoRetorno IDENTIFICADOR PARENTESIS_IZQUIERDO parametros? PARENTESIS_DERECHO bloque
+    : OVERRIDE? modificador* tipoRetorno IDENTIFICADOR PARENTESIS_IZQUIERDO parametros? PARENTESIS_DERECHO bloque
     ;
 
 tipoRetorno
@@ -152,6 +160,8 @@ primario
     : PARENTESIS_IZQUIERDO expresion PARENTESIS_DERECHO                                   # primarioParentesis
     | literal                                                                              # primarioLiteral
     | THIS                                                                                 # primarioThis
+    | SUPER PUNTO IDENTIFICADOR PARENTESIS_IZQUIERDO argumentos? PARENTESIS_DERECHO        # primarioSuperMetodo  // super.imprimir()
+    | SUPER PUNTO IDENTIFICADOR                                                            # primarioSuperAtributo // super.nombre
     | IDENTIFICADOR PARENTESIS_IZQUIERDO argumentos? PARENTESIS_DERECHO                   # primarioLlamada      // metodo de la misma clase
     | IDENTIFICADOR                                                                        # primarioIdentificador
     | NEW IDENTIFICADOR PARENTESIS_IZQUIERDO argumentos? PARENTESIS_DERECHO               # primarioNuevoObjeto  // new Persona("Ana", 30)
@@ -194,6 +204,7 @@ BOOLEAN     : 'boolean';
 STRING      : 'String';
 NEW         : 'new';
 THIS        : 'this';
+SUPER       : 'super';
 NULL        : 'null';
 TRUE        : 'true';
 FALSE       : 'false';
@@ -211,6 +222,10 @@ RETURN      : 'return';
 PRINTLN     : 'println';
 PRINT       : 'print';
 READLN      : 'readln';
+
+// ---------- Anotaciones ----------
+
+OVERRIDE    : '@Override';
 
 // ---------- Operadores ----------
 

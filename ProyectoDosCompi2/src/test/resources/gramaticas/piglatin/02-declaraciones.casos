@@ -1,0 +1,190 @@
+Pig Latin: declaraciones de variables, arreglos y objetos (lo nuevo del proyecto 2).
+
+@@@ OK variables : numerus sin valor
+esto x : numerus;
+@@> tiene: DeclaracionConTipo
+
+@@@ OK variables : todos los tipos primitivos con valor
+esto n : numerus 10;
+esto d : decimalis 2.5;
+esto t : textum "hola";
+esto l : littera 'a';
+esto b : bool verum;
+
+@@@ OK variables : booleano corto
+esto activo : verum;
+esto apagado : falsus;
+@@> tiene: DeclaracionBooleana
+
+@@@ OK variables : valor calculado
+esto total : numerus 2 * (3 + 4);
+
+@@@ OK variables : valor desde otra variable
+esto y : numerus x + 1;
+
+@@@ OK variables : valor desde funcion
+esto r : decimalis calcular(1, 2.0);
+
+@@@ OK variables : negativo
+esto n : numerus -5;
+
+@@@ OK variables : estructura sin valor
+esto p : Punto;
+@@> tiene: DeclaracionConTipo
+@@> notiene: DeclaracionObjeto
+
+@@@ OK variables : estructura con lista
+esto p : Punto {1, 2};
+
+@@@ OK variables : estructura con listas anidadas
+esto marcador : Marcador {0, 0, {1, 2, 3}, "nombre"};
+
+@@@ OK variables : estructura con lista vacia
+esto p : Punto {};
+
+@@@ OK variables : objeto con tipo explicito del enunciado
+esto miObjeto : novus Persona(12, "Profesor") : Persona ;
+@@> tiene: DeclaracionObjeto, CreacionObjeto
+@@> notiene: DeclaracionObjetoSinTipo
+
+@@@ OK variables : objeto de la subclase con tipo del padre
+esto otroObjeto : novus Profesor(12, miObjeto, novus Persona()) : Persona ;
+@@> tiene: DeclaracionObjeto
+
+@@@ OK variables : objeto nulo con tipo
+esto otroObjeto : null : Persona ;
+@@> tiene: DeclaracionObjeto
+@@> notiene: DeclaracionConTipo
+
+@@@ OK variables : objeto sin argumentos con tipo
+esto p : novus Persona() : Persona;
+
+@@@ OK variables : objeto sin tipo explicito (forma del proyecto 1)
+esto diccionario : novus Diccionario();
+@@> tiene: DeclaracionObjetoSinTipo
+@@> notiene: DeclaracionObjeto
+
+@@@ OK variables : objeto sin tipo con argumentos complejos
+esto juego : novus Ahorcado(diccionario.obtener(0), 6);
+@@> tiene: DeclaracionObjetoSinTipo
+
+@@@ OK variables : objeto copiado de otra variable con tipo
+esto copia : original : Persona;
+@@> tiene: DeclaracionObjeto, ExpresionAcceso
+
+@@@ OK variables : objeto desde llamada a metodo con tipo
+esto jefe : empresa.obtenerJefe() : Persona;
+
+@@@ OK variables : objeto desde llamada sobre objeto nuevo con tipo
+esto jefe : novus Fabrica().crearJefe() : Persona;
+@@> tiene: DeclaracionObjeto, ExpresionNuevoObjeto
+
+@@@ OK variables : objetos anidados profundos
+esto a : novus A(novus B(novus C(null)), null) : A;
+
+@@@ OK variables : sin espacios alrededor de los dos puntos
+esto p:novus Persona():Persona;
+
+@@@ OK variables : declaracion partida en varias lineas
+esto p :
+    novus Persona(
+        12,
+        "Ana"
+    )
+    : Persona ;
+
+@@@ OK variables : arreglo de una dimension
+series numeros[5] : numerus;
+
+@@@ OK variables : arreglo con valores
+series primos[4] : numerus {2, 3, 5, 7};
+
+@@@ OK variables : matriz
+series m[3][3] : decimalis;
+
+@@@ OK variables : matriz con valores
+series m[2][2] : numerus {{1, 2}, {3, 4}};
+
+@@@ OK variables : arreglo con tamano calculado
+series v[n * 2 + 1] : textum;
+
+@@@ OK variables : arreglo de objetos
+series personas[10] : Persona;
+
+@@@ OK archivo : declaraciones dentro del principal
+MAIOR>
+esto i : numerus 0;
+series a[3] : numerus;
+esto p : null : Persona;
+FINIS;
+
+@@@ SINTACTICO variables : falta punto y coma
+esto x : numerus 1
+
+@@@ SINTACTICO variables : falta dos puntos
+esto x numerus;
+
+@@@ SINTACTICO variables : falta nombre
+esto : numerus;
+
+@@@ SINTACTICO variables : falta tipo
+esto x : ;
+
+@@@ SINTACTICO variables : signo igual no se usa al declarar
+esto x : numerus = 5;
+
+@@@ SINTACTICO variables : nulo sin tipo
+esto c : null ;
+
+@@@ SINTACTICO variables : nulo con tipo sin nombre
+esto c : null : ;
+
+@@@ SINTACTICO variables : tipo explicito duplicado
+esto p : novus Persona() : Persona : Persona;
+
+@@@ SINTACTICO variables : tipo explicito antes del objeto
+esto p : Persona : novus Persona();
+
+@@@ SINTACTICO variables : tipo explicito primitivo palabra reservada
+esto p : novus Persona() : numerus;
+
+@@@ SINTACTICO variables : novus sin parentesis
+esto p : novus Persona : Persona;
+
+@@@ SINTACTICO variables : novus sin clase
+esto p : novus () : Persona;
+
+@@@ SINTACTICO variables : new en lugar de novus
+esto p : new Persona() : Persona;
+
+@@@ OK variables : NULL en mayusculas se lee como variable (lo rechaza el semantico)
+esto p : NULL : Persona;
+@@> tiene: ExpresionAcceso
+@@> notiene: Literal
+
+@@@ SINTACTICO variables : var en lugar de esto
+var x : numerus;
+
+@@@ SINTACTICO variables : esto con dos nombres
+esto x, y : numerus;
+
+@@@ SINTACTICO variables : series sin dimension
+series a : numerus;
+
+@@@ SINTACTICO variables : series con dimension vacia
+series a[] : numerus;
+
+@@@ SINTACTICO variables : series sin tipo
+series a[3];
+
+@@@ SINTACTICO variables : series con corchetes despues del tipo
+series a : numerus[3];
+
+@@@ SINTACTICO variables : lista con coma final
+series a[2] : numerus {1, 2,};
+
+@@@ SINTACTICO variables : lista sin cerrar
+series a[2] : numerus {1, 2;
+
+@@@ OK variables : tipo de otro lenguaje se lee como estructura (lo rechaza el semantico)
+esto x : entero 5;

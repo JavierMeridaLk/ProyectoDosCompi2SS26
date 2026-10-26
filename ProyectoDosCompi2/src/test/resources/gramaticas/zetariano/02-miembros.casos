@@ -1,0 +1,212 @@
+Zetariano: atributos, metodos, constructores y encapsulamiento.
+
+@@@ OK miembro : atributo default sin inicializar
+String nombre;
+
+@@@ OK miembro : atributo publico
+public int edad;
+
+@@@ OK miembro : atributo privado
+private double saldo;
+
+@@@ OK miembro : atributo protegido
+protected boolean activo;
+
+@@@ OK miembro : atributo estatico
+public static int contador = 0;
+
+@@@ OK miembro : varios atributos en una linea
+int a = 1, b, c = 3;
+
+@@@ OK miembro : atributo de tipo clase
+private Persona duenio;
+
+@@@ OK miembro : atributo nulo
+protected Persona jefe = null;
+
+@@@ OK miembro : atributo con objeto nuevo
+private Lista lista = new Lista();
+
+@@@ OK miembro : atributo char con escape
+char salto = '\n';
+
+@@@ OK miembro : atributo String con escapes
+String texto = "dice \"hola\" \\ adios";
+
+@@@ OK miembro : arreglo de una dimension
+int[] numeros = new int[10];
+
+@@@ OK miembro : arreglo de dos dimensiones
+double[][] matriz = new double[3][4];
+
+@@@ OK miembro : arreglo de tres dimensiones
+int[][][] cubo = new int[2][3][4];
+
+@@@ OK miembro : arreglo con inicializador
+int[] primos = {2, 3, 5, 7};
+
+@@@ OK miembro : arreglo con inicializador vacio
+int[] vacio = {};
+
+@@@ OK miembro : arreglo con coma final
+String[] nombres = {"a", "b", "c",};
+
+@@@ OK miembro : matriz con inicializador anidado
+int[][] m = {{1, 2}, {3, 4}, {5, 6}};
+
+@@@ OK miembro : arreglo con new e inicializador
+int[] a = new int[]{1, 2, 3};
+
+@@@ OK miembro : arreglo de objetos
+Persona[] personas = new Persona[5];
+
+@@@ OK miembro : arreglo con ultima dimension sin tamano
+int[][] dentado = new int[3][];
+
+@@@ OK miembro : metodo void sin parametros
+public void saludar() {
+}
+
+@@@ OK miembro : metodo default sin modificador
+void interno() {
+}
+
+@@@ OK miembro : metodo privado con parametros
+private int sumar(int a, int b) {
+    return a + b;
+}
+
+@@@ OK miembro : metodo protegido que retorna objeto
+protected Persona crear(String nombre, int edad) {
+    return new Persona(nombre, edad);
+}
+
+@@@ OK miembro : metodo estatico
+public static double promedio(double[] valores, int n) {
+    return 0.0;
+}
+
+@@@ OK miembro : metodo que retorna arreglo
+public int[][] identidad(int n) {
+    return new int[n][n];
+}
+
+@@@ OK miembro : metodo con parametro arreglo de objetos
+void procesar(Persona[] lista, String[][] tabla) {
+}
+
+@@@ OK miembro : metodo con cuerpo vacio y punto y coma
+void nada() {
+    ;
+}
+
+@@@ OK miembro : constructor vacio
+public Prueba() {
+}
+
+@@@ OK miembro : constructor con parametros
+public Prueba(String nombre, int edad) {
+    this.nombre = nombre;
+    this.edad = edad;
+}
+
+@@@ OK miembro : constructor default sin modificador
+Prueba(int x) {
+    valor = x;
+}
+
+@@@ OK miembro : constructor privado
+private Prueba() {
+}
+
+@@@ OK miembro : varios constructores sobrecargados
+public Prueba() {
+}
+public Prueba(int a) {
+}
+public Prueba(int a, String b) {
+}
+
+@@@ OK miembro : clase completa con todos los miembros mezclados
+private int x;
+public Prueba() { x = 0; }
+public int getX() { return x; }
+protected static int y = 5;
+public Prueba(int x) { this.x = x; }
+void setX(int x) { this.x = x; }
+
+@@@ SINTACTICO miembro : atributo sin punto y coma
+int x
+
+@@@ SINTACTICO miembro : atributo sin tipo
+nombre;
+
+@@@ SINTACTICO miembro : atributo sin nombre
+int;
+
+@@@ SINTACTICO miembro : asignacion sin valor
+int x = ;
+
+@@@ SINTACTICO miembro : coma colgante en atributos
+int a, ;
+
+@@@ SINTACTICO miembro : tipo void en atributo
+void x;
+
+@@@ SINTACTICO miembro : corchetes despues del nombre
+int numeros[] = new int[3];
+
+@@@ SINTACTICO miembro : sentencia suelta en la clase
+println("hola");
+
+@@@ SINTACTICO miembro : metodo sin cuerpo
+public void abstracto();
+
+@@@ SINTACTICO miembro : metodo sin parentesis
+public void metodo {
+}
+
+@@@ SINTACTICO miembro : metodo sin tipo de retorno ni nombre de clase
+public calcular(int a) int {
+}
+
+@@@ SINTACTICO miembro : parametro sin nombre
+void m(int) {
+}
+
+@@@ SINTACTICO miembro : parametro sin tipo
+void m(a) {
+}
+
+@@@ SINTACTICO miembro : coma colgante en parametros
+void m(int a,) {
+}
+
+@@@ SINTACTICO miembro : parametros separados por punto y coma
+void m(int a; int b) {
+}
+
+@@@ SINTACTICO miembro : parametro con valor por defecto
+void m(int a = 1) {
+}
+
+@@@ SINTACTICO miembro : metodo sin llave de cierre
+void m() {
+    int a = 1;
+
+@@@ SINTACTICO miembro : metodo anidado
+void externo() {
+    void interno() {
+    }
+}
+
+@@@ SINTACTICO miembro : modificador final no existe
+final int x = 1;
+
+@@@ SINTACTICO miembro : throws no existe
+void m() throws Exception {
+}
+
+@@@ SINTACTICO miembro : constructor con tipo de retorno y sin nombre
+public void () {
+}
