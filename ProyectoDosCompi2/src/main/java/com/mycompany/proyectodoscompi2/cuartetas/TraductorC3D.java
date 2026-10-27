@@ -22,7 +22,8 @@ public final class TraductorC3D {
         return lineas;
     }
 
-    private static String instruccion(Cuarteta cuarteta) {
+    // Una cuarteta como instruccion de tres direcciones
+    public static String instruccion(Cuarteta cuarteta) {
         String a = cuarteta.argumento1();
         String b = cuarteta.argumento2();
         String r = cuarteta.resultado();

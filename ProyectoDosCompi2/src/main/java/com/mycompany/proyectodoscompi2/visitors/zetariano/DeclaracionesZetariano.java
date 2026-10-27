@@ -21,9 +21,7 @@ import com.mycompany.proyectodoscompi2.tipos.Posicion;
 import com.mycompany.proyectodoscompi2.tipos.Tipo;
 import com.mycompany.proyectodoscompi2.tipos.Visibilidad;
 
-// Primer recorrido de un .z: registra la clase con su padre, sus atributos y las firmas de sus
-// constructores y metodos, sin entrar a los cuerpos. Asi todos los archivos pueden usar la clase
-// antes de que se traduzca. Que los tipos existan se revisa en el TraductorZetariano.
+// Primer recorrido de un .z, registra la clase con su padre, sus atributos y las firmas de sus onstructores y metodos, sin entrar a los cuerpos.
 public class DeclaracionesZetariano extends ZetarianoBaseVisitor<Void> {
 
     private final Tablas tablas;
@@ -39,7 +37,7 @@ public class DeclaracionesZetariano extends ZetarianoBaseVisitor<Void> {
         errores.agregar(TipoError.SEMANTICO, token.getLine(), token.getCharPositionInLine() + 1, lexema, descripcion);
     }
 
-    // ---------- Tipos (tambien los usa el TraductorZetariano) ----------
+    // Tipos
 
     public static Tipo tipoDe(ZetarianoParser.TipoContext contexto) {
         return tipoBase(contexto.tipoBase()).conDimensiones(contexto.CORCHETE_IZQUIERDO().size());
@@ -76,7 +74,7 @@ public class DeclaracionesZetariano extends ZetarianoBaseVisitor<Void> {
         return tipos;
     }
 
-    // Visibilidad de los modificadores; reporta repetidos y mas de uno de acceso
+    // eporta repetidos y mas de uno de acceso
     private Visibilidad visibilidad(List<ZetarianoParser.ModificadorContext> modificadores) {
         Visibilidad visibilidad = Visibilidad.DEFAULT;
         Set<String> vistos = new HashSet<>();
@@ -102,7 +100,7 @@ public class DeclaracionesZetariano extends ZetarianoBaseVisitor<Void> {
         return visibilidad;
     }
 
-    // ---------- Clase ----------
+    //Clase
 
     @Override
     public Void visitDeclaracionClase(ZetarianoParser.DeclaracionClaseContext contexto) {

@@ -22,7 +22,7 @@ import com.mycompany.proyectodoscompi2.tipos.OperadorUnario;
 import com.mycompany.proyectodoscompi2.tipos.Tipo;
 import com.mycompany.proyectodoscompi2.visitors.TraductorBase;
 
-// Segundo recorrido del .pig, analisis semantico y cuartetas del programa principal,desde Pig Latin solo se usan los miembros public de las clases.
+// Segundo recorrido del .pig, analisis semantico y cuartetas del programa principal
 public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<Valor> {
 
     public TraductorPigLatin(Tablas tablas, ListaCuartetas codigo, ManejadorErrores errores) {
@@ -168,7 +168,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return recorrido.direccion();
     }
 
-    // Condicion como saltos: && y || en corto circuito, comparaciones directo al if
+    // Condicion como saltos en corto circuito, comparaciones directo al if
     private void condicion(pigLatinParser.ExpresionContext contexto, String verdadero, String falso) {
         if (contexto instanceof pigLatinParser.ExpresionYContext y) {
             String siguiente = etiqueta();
@@ -200,16 +200,13 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         }
     }
 
-    // ==================================================================
-    //                          Programa
-    // ==================================================================
+    //Programa
 
     @Override
     public Valor visitPrograma(pigLatinParser.ProgramaContext contexto) {
         entrarMarco("main");
         inicioFuncion("main", VOID);
         // el programa empieza con el marco de main al inicio del stack y el heap vacio
-        // (la celda 0 del heap no se usa: la direccion 0 es null)
         emitir("=", "0", "", "P");
         emitir("=", "1", "", "H");
         if (contexto.seccionVariables() != null) {
@@ -244,9 +241,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return null;
     }
 
-    // ==================================================================
-    //                          Declaraciones
-    // ==================================================================
+    //Declaraciones
 
     @Override
     public Valor visitDeclaracion(pigLatinParser.DeclaracionContext contexto) {
@@ -269,16 +264,15 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
             tipo = BOOLEANO;
             valor = booleano(booleana.VERUM() != null);
         } else if (cuerpo instanceof pigLatinParser.DeclaracionObjetoContext objeto) {
-            // esto p : novus Profesor(...) : Persona ;   esto q : null : Persona ;
             Token nombreTipo = objeto.IDENTIFICADOR().getSymbol();
             tipo = conocido(Tipo.clase(nombreTipo.getText()), nombreTipo);
             valor = asignar(tipo, objeto.expresion());
         } else {
-            // esto d : novus Diccionario();   (el tipo es la clase creada)
+            // esto d : novus Diccionario();
             valor = visit(((pigLatinParser.DeclaracionObjetoSinTipoContext) cuerpo).creacionObjeto());
             tipo = valor.tipo().equals(VOID) ? Tipo.ERROR : valor.tipo();
         }
-        // se declara despues de evaluar el valor: "esto x : numerus x" usa una x que todavia no existe
+        // se declara despues de evaluar el valor se usa una x que todavia no existe
         Simbolo variable = declararVariable(nombre, tipo, CategoriaSimbolo.VARIABLE);
         escribir(direccionDe(variable), valor);
         return null;
@@ -304,7 +298,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return null;
     }
 
-    // series v[3][2] : numerus {{1, 2}, {3, 4}, {5, 6}};
+    // series 
     @Override
     public Valor visitDeclaracionArreglo(pigLatinParser.DeclaracionArregloContext contexto) {
         Tipo tipo = conocido(tipoDe(contexto.tipo()), contexto.tipo().getStart());
@@ -338,10 +332,9 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return null;
     }
 
-    // ==================================================================
-    //                          Instrucciones
-    // ==================================================================
 
+    //Instrucciones
+    
     @Override
     public Valor visitBloque(pigLatinParser.BloqueContext contexto) {
         instrucciones(contexto, "bloque");
@@ -368,7 +361,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return null;
     }
 
-    // Una instruccion que es solo un acceso debe ser una llamada: imprimirMenu();  juego.dibujar();
+    // Una instruccion que es solo un acceso debe ser una llamada
     @Override
     public Valor visitLlamada(pigLatinParser.LlamadaContext contexto) {
         Recorrido recorrido = acceso(contexto.acceso(), false);
@@ -391,7 +384,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return null;
     }
 
-    // si (c) {..} aliter (c) {..} aliter {..} finis;
+    // si aliter aliter finis;
     @Override
     public Valor visitCondicional(pigLatinParser.CondicionalContext contexto) {
         String fin = etiqueta();
@@ -475,7 +468,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return null;
     }
 
-    // per (esto i : numerus 0; ...)
+    // per
     @Override
     public Valor visitInicioPerDeclaracion(pigLatinParser.InicioPerDeclaracionContext contexto) {
         Tipo tipo = conocido(tipoDe(contexto.tipo()), contexto.tipo().getStart());
@@ -504,7 +497,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return null;
     }
 
-    // x << lee una linea y la convierte al tipo de x;  << solo espera una linea
+    // x << lee una linea y la convierte al tipo de x
     @Override
     public Valor visitLectura(pigLatinParser.LecturaContext contexto) {
         if (contexto.acceso() != null) {
@@ -524,9 +517,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return null;
     }
 
-    // ==================================================================
-    //                          Accesos y objetos
-    // ==================================================================
+    //Accesos y objetos
 
     @Override
     public Valor visitAcceso(pigLatinParser.AccesoContext contexto) {
@@ -569,9 +560,7 @@ public class TraductorPigLatin extends TraductorBase implements pigLatinVisitor<
         return recorrer(objeto, contexto.sufijo(), 0, false, null).valor();
     }
 
-    // ==================================================================
-    //                          Expresiones
-    // ==================================================================
+    //Expresiones
 
     @Override
     public Valor visitExpresionUnaria(pigLatinParser.ExpresionUnariaContext contexto) {

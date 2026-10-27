@@ -16,7 +16,11 @@ public class ListaCuartetas {
     private int etiquetas;
 
     public void agregar(String operador, String argumento1, String argumento2, String resultado) {
-        cuartetas.add(new Cuarteta(operador, argumento1, argumento2, resultado));
+        agregar(operador, argumento1, argumento2, resultado, false);
+    }
+
+    public void agregar(String operador, String argumento1, String argumento2, String resultado, boolean decimal) {
+        cuartetas.add(new Cuarteta(operador, argumento1, argumento2, resultado, decimal));
     }
 
     public String nuevoTemporal() {
@@ -37,7 +41,7 @@ public class ListaCuartetas {
         for (int i = desde; i < cuartetas.size(); i++) {
             Cuarteta c = cuartetas.get(i);
             cuartetas.set(i, new Cuarteta(c.operador(), conMarco(c.argumento1(), marco),
-                    conMarco(c.argumento2(), marco), conMarco(c.resultado(), marco)));
+                    conMarco(c.argumento2(), marco), conMarco(c.resultado(), marco), c.decimal()));
         }
     }
 

@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.antlr.v4.runtime.Token;
 
-import com.mycompany.yBaseVisitor;
-import com.mycompany.yParser;
 import com.mycompany.proyectodoscompi2.errores.ManejadorErrores;
 import com.mycompany.proyectodoscompi2.errores.TipoError;
 import com.mycompany.proyectodoscompi2.tablas.Campo;
@@ -17,9 +15,10 @@ import com.mycompany.proyectodoscompi2.tablas.TipoDefinido;
 import com.mycompany.proyectodoscompi2.tipos.Posicion;
 import com.mycompany.proyectodoscompi2.tipos.Tipo;
 import com.mycompany.proyectodoscompi2.tipos.Visibilidad;
+import com.mycompany.yBaseVisitor;
+import com.mycompany.yParser;
 
-// Primer recorrido de un .y: registra las estructuras (tambien las que se definen dentro de una
-// funcion) y las firmas de las funciones. Que los tipos existan se revisa en el TraductorY.
+// Primer recorrido de un .y , registra las estructuras y las firmas de las funciones,q ue los tipos existan
 public class DeclaracionesY extends yBaseVisitor<Void> {
 
     private final Tablas tablas;
@@ -34,7 +33,7 @@ public class DeclaracionesY extends yBaseVisitor<Void> {
         errores.agregar(TipoError.SEMANTICO, token.getLine(), token.getCharPositionInLine() + 1, lexema, descripcion);
     }
 
-    // ---------- Tipos (tambien los usa el TraductorY) ----------
+    //Tipos
 
     public static Tipo tipoDe(yParser.TipoContext contexto) {
         if (contexto.ENTERO_T() != null) {
@@ -65,7 +64,7 @@ public class DeclaracionesY extends yBaseVisitor<Void> {
         return tipoDe(((yParser.ParametroValorContext) contexto).tipo());
     }
 
-    // Nombre del parametro (en {}Punto p el nombre es el segundo identificador)
+    // Nombre del parametro 
     public static Token nombreDe(yParser.ParametroContext contexto) {
         if (contexto instanceof yParser.ParametroArregloContext arreglo) {
             return arreglo.IDENTIFICADOR().getSymbol();
@@ -83,8 +82,8 @@ public class DeclaracionesY extends yBaseVisitor<Void> {
         return tipoDe(contexto.tipoRetorno().tipo()).conDimensiones(contexto.tipoRetorno().CORCHETE_IZQUIERDO().size());
     }
 
-    // ---------- Estructuras y funciones ----------
-
+    // Estructuras y funciones
+    
     @Override
     public Void visitDefinicionEstructura(yParser.DefinicionEstructuraContext contexto) {
         Token nombre = contexto.IDENTIFICADOR().getSymbol();

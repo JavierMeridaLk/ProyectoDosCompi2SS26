@@ -65,8 +65,8 @@ public class InterpreteC3D {
                 case "neg" -> asignar(r, valor(a) instanceof Double d ? (Object) (-d) : (Object) (-entero(valor(a))));
                 case "(int)" -> asignar(r, (long) decimal(valor(a)));
                 case "(double)" -> asignar(r, decimal(valor(a)));
-                case "leer_stack" -> asignar(r, leer(stack, celda(a, b)));
-                case "leer_heap" -> asignar(r, leer(heap, celda(a, b)));
+                case "leer_stack" -> asignar(r, leer(stack, celda(a, b), c.decimal()));
+                case "leer_heap" -> asignar(r, leer(heap, celda(a, b), c.decimal()));
                 case "escribir_stack" -> stack[celda(r, b)] = valor(a);
                 case "escribir_heap" -> heap[celda(r, b)] = valor(a);
                 case "label" -> {
@@ -148,9 +148,17 @@ public class InterpreteC3D {
         return (int) posicion;
     }
 
-    private static Object leer(Object[] memoria, int celda) {
+    // La cuarteta dice si la celda tiene un decimal (en RISC-V se lee con fld o con lw): debe coincidir
+    private static Object leer(Object[] memoria, int celda, boolean decimal) {
         Object valor = memoria[celda];
-        return valor != null ? valor : 0L;
+        if (valor == null) {
+            return decimal ? (Object) 0.0 : (Object) 0L;
+        }
+        if (decimal != valor instanceof Double) {
+            throw new IllegalStateException("La celda " + celda + " tiene " + valor + " y se leyó como "
+                    + (decimal ? "decimal" : "entero"));
+        }
+        return valor;
     }
 
     private static long entero(Object valor) {

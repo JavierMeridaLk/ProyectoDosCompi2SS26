@@ -8,11 +8,10 @@ import com.mycompany.proyectodoscompi2.analizador.Compilador;
 import com.mycompany.proyectodoscompi2.analizador.ResultadoCompilacion;
 import com.mycompany.proyectodoscompi2.cuartetas.TraductorC3D;
 import com.mycompany.proyectodoscompi2.errores.ErrorCompilacion;
+import com.mycompany.proyectodoscompi2.riscv.TraductorRiscV;
 import com.mycompany.proyectodoscompi2.views.FramePrincipal;
 
-// Sin argumentos abre el IDE. Con archivos los compila en consola: muestra los errores o el C3D.
-//   java -jar ProyectoDosCompi2.jar programa.pig
-//
+
 // @author xavi
 public class ProyectoDosCompi2 {
 
@@ -21,11 +20,14 @@ public class ProyectoDosCompi2 {
             FramePrincipal.main(args);
             return;
         }
-        for (String archivo : args) {
-            Path ruta = Path.of(archivo).toAbsolutePath().normalize();
+        boolean riscV = args[0].equals("--riscv");
+        for (int i = riscV ? 1 : 0; i < args.length; i++) {
+            Path ruta = Path.of(args[i]).toAbsolutePath().normalize();
             ResultadoCompilacion resultado = Compilador.compilar(ruta.getParent(), ruta, Files::readString);
-            System.out.println("=== " + ruta.getFileName());
-            if (resultado.exitoso()) {
+            System.out.println((riscV ? "# === " : "=== ") + ruta.getFileName());
+            if (resultado.exitoso() && riscV) {
+                System.out.print(TraductorRiscV.traducir(resultado.cuartetas()));
+            } else if (resultado.exitoso()) {
                 TraductorC3D.traducir(resultado.cuartetas()).forEach(System.out::println);
             } else {
                 for (ErrorCompilacion error : resultado.errores()) {

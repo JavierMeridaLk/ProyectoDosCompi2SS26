@@ -5,8 +5,6 @@ import java.util.List;
 
 import org.antlr.v4.runtime.Token;
 
-import com.mycompany.yParser;
-import com.mycompany.yVisitor;
 import com.mycompany.proyectodoscompi2.analizador.Lenguaje;
 import com.mycompany.proyectodoscompi2.cuartetas.Direccion;
 import com.mycompany.proyectodoscompi2.cuartetas.ListaCuartetas;
@@ -20,15 +18,17 @@ import com.mycompany.proyectodoscompi2.tipos.OperadorBinario;
 import com.mycompany.proyectodoscompi2.tipos.OperadorUnario;
 import com.mycompany.proyectodoscompi2.tipos.Tipo;
 import com.mycompany.proyectodoscompi2.visitors.TraductorBase;
+import com.mycompany.yParser;
+import com.mycompany.yVisitor;
 
-// Segundo recorrido de un .y: analisis semantico y cuartetas de cada funcion en un solo paso
+// Segundo recorrido de un .y, analisis semantico y cuartetas de cada funcion
 public class TraductorY extends TraductorBase implements yVisitor<Valor> {
 
     public TraductorY(Tablas tablas, ListaCuartetas codigo, ManejadorErrores errores) {
         super(tablas, codigo, errores, Lenguaje.Y);
     }
 
-    // ---------- Utilidades ----------
+    //Utilidades
 
     private List<Valor> argumentos(yParser.ArgumentosContext contexto) {
         List<Valor> valores = new ArrayList<>();
@@ -38,7 +38,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         return valores;
     }
 
-    // Valor inicial: una expresion o una lista { } (arreglo o estructura)
+    // Valor inicial
     private Valor inicializar(Tipo destino, yParser.InicializadorContext valor, List<Valor> tamanos) {
         return inicializar(destino, valor, tamanos,
                 i -> i.listaInicializacion() != null ? i.listaInicializacion().inicializador() : null,
@@ -51,7 +51,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         salirAmbito();
     }
 
-    // variable, variable[i][j], variable.atributo, combinados
+    // variable
     private Direccion direccion(yParser.AccesoContext contexto) {
         Token nombre = contexto.IDENTIFICADOR().getSymbol();
         Simbolo variable = buscarVariable(nombre.getText());
@@ -70,7 +70,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
                         atributo.IDENTIFICADOR().getSymbol());
                 continue;
             }
-            // indices seguidos: a[i][j]
+            // indices seguidos
             List<Valor> indices = new ArrayList<>();
             while (i < sufijos.size() && sufijos.get(i) instanceof yParser.SufijoIndiceContext indice) {
                 indices.add(visit(indice.expresion()));
@@ -82,7 +82,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         return actual;
     }
 
-    // Condicion como saltos: && y || en corto circuito, comparaciones directo al if
+    // Condicion como saltos && y || en corto circuito, comparaciones directo al if
     private void condicion(yParser.ExpresionContext contexto, String verdadero, String falso) {
         if (contexto instanceof yParser.ExpresionYContext y) {
             String siguiente = etiqueta();
@@ -114,7 +114,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         }
     }
 
-    // ---------- Programa, estructuras y funciones ----------
+    //Programa, estructuras y funciones
 
     @Override
     public Valor visitPrograma(yParser.ProgramaContext contexto) {
@@ -137,7 +137,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         return null;
     }
 
-    // Las estructuras ya se registraron; aqui se revisa que existan los tipos de sus atributos
+    // aqui se revisa que existan los tipos de sus atributos
     @Override
     public Valor visitDefinicionEstructura(yParser.DefinicionEstructuraContext contexto) {
         for (yParser.AtributoEstructuraContext atributo : contexto.atributoEstructura()) {
@@ -164,7 +164,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
                 declararVariable(DeclaracionesY.nombreDe(parametro), tipo, CategoriaSimbolo.PARAMETRO);
             }
         }
-        // el cuerpo comparte el ambito de los parametros: una variable no puede llamarse como un parametro
+        // el cuerpo comparte el ambito de los parametros, una variable no puede llamarse como un parametro
         contexto.bloque().instruccion().forEach(this::visit);
         finFuncion(false);
         salirAmbito();
@@ -201,7 +201,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         return null;
     }
 
-    // ---------- Instrucciones ----------
+    //Instrucciones
 
     @Override
     public Valor visitBloque(yParser.BloqueContext contexto) {
@@ -240,7 +240,6 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         contexto.dimension().forEach(dimension -> tamanos.add(visit(dimension.expresion())));
         Valor valor = contexto.inicializador() != null ? inicializar(tipo, contexto.inicializador(), tamanos)
                 : valorPorDefecto(tipo, tamanos, contexto);
-        // se declara despues de evaluar el valor: "entero x = x" usa una x que todavia no existe
         Simbolo variable = declararVariable(contexto.IDENTIFICADOR().getSymbol(), tipo, CategoriaSimbolo.VARIABLE);
         escribir(direccionDe(variable), valor);
         return null;
@@ -310,7 +309,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         return null;
     }
 
-    // si ... sino ... contrario: cada rama salta al final
+    // si ... sino ... contrario
     @Override
     public Valor visitCondicional(yParser.CondicionalContext contexto) {
         String fin = etiqueta();
@@ -446,7 +445,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         return null;
     }
 
-    // ---------- Accesos ----------
+    //Accesos
 
     @Override
     public Valor visitAcceso(yParser.AccesoContext contexto) {
@@ -463,7 +462,7 @@ public class TraductorY extends TraductorBase implements yVisitor<Valor> {
         return null;
     }
 
-    // ---------- Expresiones ----------
+    // Expresiones
 
     @Override
     public Valor visitExpresionLeer(yParser.ExpresionLeerContext contexto) {

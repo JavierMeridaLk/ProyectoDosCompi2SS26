@@ -22,6 +22,7 @@ import com.mycompany.proyectodoscompi2.analizador.Compilador;
 import com.mycompany.proyectodoscompi2.analizador.ResultadoCompilacion;
 import com.mycompany.proyectodoscompi2.archivos.GestorArchivos;
 import com.mycompany.proyectodoscompi2.cuartetas.TraductorC3D;
+import com.mycompany.proyectodoscompi2.riscv.TraductorRiscV;
 import com.mycompany.proyectodoscompi2.views.componentes.PestanaEditor;
 
 // Ventana principal del IDE.
@@ -192,7 +193,7 @@ public class FramePrincipal extends javax.swing.JFrame {
             return;
         }
         errores.setErrores(ultimoResultado.errores());
-        codigoRiscV.setCodigo(null);    // la traduccion a RISC-V todavia no esta conectada
+        codigoRiscV.setCodigo(ultimoResultado.exitoso() ? TraductorRiscV.traducir(ultimoResultado.cuartetas()) : null);
     }
 
     // Los archivos abiertos se leen del editor, aunque no esten guardados

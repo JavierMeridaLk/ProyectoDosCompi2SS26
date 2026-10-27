@@ -24,6 +24,7 @@ import com.mycompany.proyectodoscompi2.analizador.ResultadoCompilacion;
 import com.mycompany.proyectodoscompi2.cuartetas.TraductorC3D;
 import com.mycompany.proyectodoscompi2.errores.ErrorCompilacion;
 import com.mycompany.proyectodoscompi2.errores.TipoError;
+import com.mycompany.proyectodoscompi2.riscv.TraductorRiscV;
 
 // Pruebas del analisis semantico y de la generacion de cuartetas con programas completos.
 //
@@ -204,11 +205,39 @@ public class SemanticoTest {
                         + visible(obtenida));
             }
         }
+        if (caso.esperaOk()) {
+            probarRiscV(caso, resultado);
+        }
         String todo = String.join("\n", c3d);
         for (String esperado : caso.c3d()) {
             if (!todo.contains(esperado)) {
                 fail(encabezado(caso) + " el C3D no contiene: " + esperado + "\n" + todo);
             }
+        }
+    }
+
+    // Todo programa correcto se traduce a RISC-V y se ensambla; si el caso tiene salida tambien se ejecuta
+    private static void probarRiscV(Caso caso, ResultadoCompilacion resultado) {
+        String ensamblador;
+        SimuladorRiscV simulador;
+        try {
+            ensamblador = TraductorRiscV.traducir(resultado.cuartetas());
+            simulador = new SimuladorRiscV(ensamblador, caso.entrada());
+        } catch (RuntimeException e) {
+            throw new AssertionError(encabezado(caso) + " falló al traducir a RISC-V: " + e.getMessage(), e);
+        }
+        if (caso.salida() == null) {
+            return;
+        }
+        String obtenida;
+        try {
+            obtenida = simulador.ejecutar();
+        } catch (RuntimeException e) {
+            throw new AssertionError(encabezado(caso) + " falló al ejecutar el RISC-V: " + e.getMessage(), e);
+        }
+        if (!obtenida.equals(caso.salida())) {
+            fail(encabezado(caso) + " salida distinta en RISC-V\n  esperada: " + visible(caso.salida())
+                    + "\n  obtenida: " + visible(obtenida));
         }
     }
 

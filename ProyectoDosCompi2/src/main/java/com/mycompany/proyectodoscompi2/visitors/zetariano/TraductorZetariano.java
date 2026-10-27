@@ -26,11 +26,7 @@ import com.mycompany.proyectodoscompi2.tipos.Posicion;
 import com.mycompany.proyectodoscompi2.tipos.Tipo;
 import com.mycompany.proyectodoscompi2.visitors.TraductorBase;
 
-// Segundo recorrido de un .z: analisis semantico (herencia, @Override, super, visibilidad, tipos) y
-// cuartetas de la clase en un solo paso. Cada clase genera:
-//   Clase_init         valores iniciales de sus atributos propios
-//   Clase_constructor  uno por constructor: super(...) (o el vacio del padre), Clase_init y el cuerpo
-//   Clase_metodo       uno por metodo
+// Segundo recorrido de un .z,  analisis semantico y cuartetas de la clase en un solo paso. 
 // Cada objeto guarda en su celda 0 el numero de su clase para el despacho dinamico.
 public class TraductorZetariano extends TraductorBase implements ZetarianoVisitor<Valor> {
 
@@ -40,9 +36,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         super(tablas, codigo, errores, Lenguaje.ZETARIANO);
     }
 
-    // ==================================================================
-    //                          Utilidades
-    // ==================================================================
+    //Utilidades
 
     private List<Valor> argumentos(ZetarianoParser.ArgumentosContext contexto) {
         List<Valor> valores = new ArrayList<>();
@@ -52,7 +46,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return valores;
     }
 
-    // Lista { } de un arreglo: sus elementos; una expresion: null
+    // Lista { } de un arreglo
     private static List<ParserRuleContext> elementos(ParserRuleContext contexto) {
         ZetarianoParser.InicializadorArregloContext lista = null;
         if (contexto instanceof ZetarianoParser.InicializadorArregloContext arreglo) {
@@ -68,13 +62,13 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
                 v -> visit(((ZetarianoParser.InicializadorVariableContext) v).expresion()), valor);
     }
 
-    // El objeto actual (parametro 0 de los constructores y metodos)
+    // El objeto actual 
     private Valor este() {
         Simbolo simbolo = buscarVariable(THIS);
         return simbolo == null ? Valor.error() : cargar(direccionDe(simbolo));
     }
 
-    // this visto como su clase padre (para super.x y super.m())
+    // this visto como su clase padre
     private Valor comoPadre(Token token) {
         TipoDefinido padre = tablas.tipos().padre(claseActual);
         if (padre == null || !padre.esClase()) {
@@ -107,7 +101,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         salirAmbito();
     }
 
-    // El simbolo que registro el primer recorrido para este constructor/metodo (por su posicion)
+    // El simbolo que registro el primer recorrido para este constructor/metodo 
     private static Simbolo simboloEn(List<Simbolo> opciones, Token nombre) {
         Posicion posicion = Posicion.de(nombre);
         for (Simbolo simbolo : opciones) {
@@ -118,7 +112,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return null;
     }
 
-    // Llamada al constructor vacio del padre cuando el constructor no escribe super(...)
+    // Llamada al constructor vacio del padre cuando el constructor no escribe super
     private void superImplicito(Token donde) {
         TipoDefinido padre = tablas.tipos().padre(claseActual);
         if (padre == null || !padre.esClase()) {
@@ -148,7 +142,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         llamar(claseActual.getNombre() + "_init", VOID, List.of(este()));
     }
 
-    // Destino de una asignacion o incremento: variable, atributo, super.atributo o elemento de arreglo; null si no lo es
+    // Destino de una asignacion o incremento
     private Direccion direccion(ZetarianoParser.ExpresionContext contexto) {
         if (contexto instanceof ZetarianoParser.ExpresionPrimariaContext primaria) {
             if (primaria.primario() instanceof ZetarianoParser.PrimarioIdentificadorContext identificador) {
@@ -165,7 +159,6 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
                     atributo.IDENTIFICADOR().getSymbol());
         }
         if (contexto instanceof ZetarianoParser.ExpresionIndiceContext) {
-            // a[i][j] llega como Indice(Indice(a, i), j)
             List<ZetarianoParser.ExpresionContext> indices = new ArrayList<>();
             ZetarianoParser.ExpresionContext actual = contexto;
             while (actual instanceof ZetarianoParser.ExpresionIndiceContext indice) {
@@ -180,7 +173,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return null;
     }
 
-    // Un nombre suelto: variable local/parametro, o atributo (propio o heredado) de this
+    //variable local/parametro, o atributo de this
     private Direccion direccionNombre(Token nombre) {
         Simbolo variable = buscarVariable(nombre.getText());
         if (variable != null) {
@@ -206,7 +199,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return direccion;
     }
 
-    // Condicion como saltos: && y || en corto circuito, comparaciones directo al if
+    // Condicion como saltos, && y || en corto circuito, comparaciones directo al if
     private void condicion(ZetarianoParser.ExpresionContext contexto, String verdadero, String falso) {
         if (contexto instanceof ZetarianoParser.ExpresionYContext y) {
             String siguiente = etiqueta();
@@ -239,9 +232,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         }
     }
 
-    // ==================================================================
-    //                          Clase
-    // ==================================================================
+    //Clase
 
     @Override
     public Valor visitCompilacion(ZetarianoParser.CompilacionContext contexto) {
@@ -252,7 +243,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
     public Valor visitDeclaracionClase(ZetarianoParser.DeclaracionClaseContext contexto) {
         TipoDefinido clase = tablas.tipos().buscar(contexto.IDENTIFICADOR(0).getText());
         if (clase == null || !errores.getArchivo().equals(clase.getArchivo())) {
-            return null;    // no se registro (nombre repetido): ya se reporto
+            return null;   
         }
         claseActual = clase;
         verificarHerencia(contexto);
@@ -301,7 +292,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         }
     }
 
-    // Sin constructores declarados: super() del padre y los valores iniciales de los atributos
+    // Sin constructores declarados
     private void constructorPorDefecto(Token clase) {
         abrirMarco(claseActual.getNombre(), claseActual.getNombre() + "_constructor", VOID, null, clase);
         superImplicito(clase);
@@ -356,7 +347,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return null;
     }
 
-    // super(argumentos): constructor del padre sobre este mismo objeto
+    // constructor del padre sobre este mismo objeto
     @Override
     public Valor visitLlamadaSuper(ZetarianoParser.LlamadaSuperContext contexto) {
         Token token = contexto.SUPER().getSymbol();
@@ -390,14 +381,12 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         String etiqueta = metodo != null ? metodo.etiqueta() : claseActual.getNombre() + "_" + nombre.getText()
                 + "_invalido";
         abrirMarco(nombre.getText(), etiqueta, retorno, contexto.parametros(), nombre);
-        // el cuerpo comparte el ambito de los parametros: una variable no puede llamarse como un parametro
         contexto.bloque().sentencia().forEach(this::visit);
         cerrarMarco();
         return null;
     }
 
-    // @Override es obligatorio al sobrescribir y es un error si no sobrescribe nada. El retorno puede ser
-    // covariante (una subclase) y la visibilidad no se puede reducir.
+    // @Override es obligatorio al sobrescribir y es un error si no sobrescribe nada
     private void verificarSobrescritura(Simbolo metodo, ZetarianoParser.DeclaracionMetodoContext contexto,
             Token nombre) {
         Simbolo heredado = tablas.metodoSobrescrito(claseActual, metodo);
@@ -468,9 +457,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return Valor.error();
     }
 
-    // ==================================================================
-    //                          Sentencias
-    // ==================================================================
+    //Sentencias
 
     @Override
     public Valor visitBloque(ZetarianoParser.BloqueContext contexto) {
@@ -520,7 +507,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return null;
     }
 
-    // Una sentencia sola (sin llaves) tambien tiene su propio ambito
+    // Una sentencia sola ambien tiene su propio ambito
     private void visitarEnBloque(ZetarianoParser.SentenciaContext sentencia, String nombre) {
         entrarBloque(nombre);
         visit(sentencia);
@@ -679,7 +666,6 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return null;
     }
 
-    // Como en Java, solo las asignaciones, incrementos, llamadas, new y readln() pueden ir solas
     private void verificarInstruccion(ZetarianoParser.ExpresionContext expresion) {
         boolean valida = expresion instanceof ZetarianoParser.ExpresionAsignacionContext
                 || expresion instanceof ZetarianoParser.ExpresionPostfijaContext
@@ -702,9 +688,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return null;
     }
 
-    // ==================================================================
-    //                          Expresiones
-    // ==================================================================
+    //Expresiones
 
     @Override
     public Valor visitExpresionPrimaria(ZetarianoParser.ExpresionPrimariaContext contexto) {
@@ -790,8 +774,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return valorDeCondicion((verdadero, falso) -> condicion(contexto, verdadero, falso));
     }
 
-    // c ? a : b. El tipo es el mas general de los dos; si la primera opcion es entera y la segunda
-    // decimal, su asignacion se cambia despues por una conversion.
+    //si la primera opcion es entera y la segunda decimal, su asignacion se cambia despues por una conversion.
     @Override
     public Valor visitExpresionTernaria(ZetarianoParser.ExpresionTernariaContext contexto) {
         String resultado = temporal();
@@ -838,7 +821,6 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
             valor = inicializar(destino.tipo(), contexto.expresion(1), List.of(), e -> null, this::visit, contexto);
             escribir(destino, valor);
         } else {
-            // a += b  ->  a = a + b
             OperadorBinario operador = OperadorBinario.desdeTexto(simbolo.substring(0, 1));
             Valor actual = cargar(destino);
             valor = binaria(operador, actual, visit(contexto.expresion(1)), contexto);
@@ -869,7 +851,6 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
     public Valor visitPrimarioSuperMetodo(ZetarianoParser.PrimarioSuperMetodoContext contexto) {
         Valor padre = comoPadre(contexto.SUPER().getSymbol());
         List<Valor> valores = argumentos(contexto.argumentos());
-        // super.m() llama a la version del padre: sin despacho dinamico
         return llamarMetodo(padre, contexto.IDENTIFICADOR().getText(), valores, contexto.IDENTIFICADOR().getSymbol(),
                 true);
     }
@@ -880,7 +861,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
                 contexto.IDENTIFICADOR().getSymbol()));
     }
 
-    // m(args): metodo de la clase (propio o heredado); si no hay, una funcion de un .y
+    // metodo de la clase (propio o heredado)
     @Override
     public Valor visitPrimarioLlamada(ZetarianoParser.PrimarioLlamadaContext contexto) {
         Token nombre = contexto.IDENTIFICADOR().getSymbol();
@@ -917,7 +898,7 @@ public class TraductorZetariano extends TraductorBase implements ZetarianoVisito
         return crearObjeto(contexto.IDENTIFICADOR().getText(), valores, contexto.IDENTIFICADOR().getSymbol());
     }
 
-    // new int[a][b]: se debe dar el tamano de todas las dimensiones
+    // se debe dar el tamano de todas las dimensiones
     @Override
     public Valor visitPrimarioNuevoArreglo(ZetarianoParser.PrimarioNuevoArregloContext contexto) {
         int dimensiones = contexto.CORCHETE_IZQUIERDO().size();

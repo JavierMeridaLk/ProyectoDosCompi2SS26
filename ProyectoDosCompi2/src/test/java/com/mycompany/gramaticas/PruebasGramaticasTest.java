@@ -37,6 +37,8 @@ import org.junit.jupiter.api.TestFactory;
 import com.mycompany.ZetarianoLexer;
 import com.mycompany.proyectodoscompi2.analizador.CargadorArchivos;
 import com.mycompany.proyectodoscompi2.analizador.Compilador;
+import com.mycompany.proyectodoscompi2.analizador.ResultadoCompilacion;
+import com.mycompany.proyectodoscompi2.riscv.TraductorRiscV;
 import com.mycompany.ZetarianoParser;
 import com.mycompany.pigLatinLexer;
 import com.mycompany.pigLatinParser;
@@ -408,7 +410,11 @@ public class PruebasGramaticasTest {
             }
         };
         try {
-            Compilador.compilar(raiz, archivo, lector);
+            // si ademas es semanticamente correcto, su RISC-V debe traducirse y ensamblarse
+            ResultadoCompilacion compilado = Compilador.compilar(raiz, archivo, lector);
+            if (compilado.exitoso()) {
+                new SimuladorRiscV(TraductorRiscV.traducir(compilado.cuartetas()), "");
+            }
         } catch (RuntimeException | IOException e) {
             StringWriter traza = new StringWriter();
             e.printStackTrace(new PrintWriter(traza));

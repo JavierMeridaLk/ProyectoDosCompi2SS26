@@ -1,0 +1,659 @@
+Traduccion a RISC-V: cada programa se ejecuta en el interprete del C3D y en el simulador de RISC-V
+(SimuladorRiscV); las dos salidas deben ser la esperada. Cada caso apunta a una parte de la traduccion.
+
+@@@ OK : aritmetica de decimales impresa directo
+@@> salida: 9.5 5.5 15.0 3.75 10.5 1.5 -7.5 0.5
+=== main.pig
+VARIABILES>
+esto a : decimalis 7.5;
+esto b : decimalis 2.0;
+esto n : numerus 3;
+MAIOR>
+>> a + b >> " " >> a - b >> " " >> a * b >> " " >> a / b >> " " >> a + n >> " " >> n / b >> " " >> -a >> " " >> 1 / b;
+FINIS;
+
+@@@ OK : comparaciones entre decimales y con enteros
+@@> salida: verum falsus verum falsus verum falsus verum verum falsus
+=== main.pig
+VARIABILES>
+esto a : decimalis 7.5;
+esto b : decimalis 2.0;
+esto n : numerus 7;
+MAIOR>
+>> (a > b) >> " " >> (a < b) >> " " >> (a >= 7.5) >> " " >> (a <= 7.4) >> " " >> (a == 7.5) >> " ";
+>> (a != 7.5) >> " " >> (n < a) >> " " >> (2.0 == 2) >> " " >> (n > a);
+FINIS;
+
+@@@ OK : condiciones con decimales en si y dum
+@@> salida: mayor|4 1.00|menor
+=== main.pig
+VARIABILES>
+esto x : decimalis 0.0;
+esto pasos : numerus 0;
+MAIOR>
+si (2.5 > 2) {
+    >> "mayor|";
+} aliter {
+    >> "menor|";
+} finis;
+dum (x < 1.0) {
+    x = x + 0.25;
+    pasos++;
+} finis;
+>> pasos + " " + x + "|";
+si (x - 1 > 0.0) {
+    >> "mayor";
+} aliter {
+    >> "menor";
+} finis;
+FINIS;
+
+@@@ OK : modulo y division de enteros con signo
+@@> salida: -1\n1\n2\n-3\n3\n0\n
+=== M.z
+public class M {
+    public M() {
+        println(-7 % 3);
+        println(7 % -3);
+        println(17 % 5);
+        println(-7 / 2);
+        println(-7 / -2);
+        println(0 % 5);
+    }
+}
+=== main.pig
+import M.z
+VARIABILES>
+esto m : novus M() : M ;
+MAIOR>
+FINIS;
+
+@@@ OK : decimales pequenos grandes y repetidos
+@@> salida: 0.001 12345.678 0.002 12345.679 0.001
+=== main.pig
+VARIABILES>
+esto a : decimalis 0.001;
+esto b : decimalis 12345.678;
+MAIOR>
+>> a >> " " >> b >> " " >> a + 0.001 >> " " >> b + 0.001 >> " " >> 0.001;
+FINIS;
+
+@@@ OK : negativos y cero en decimales
+@@> salida: -2.5 2.5 0.0 -0.25|-2.50|0.00
+=== main.pig
+VARIABILES>
+esto a : decimalis -2.5;
+esto c : decimalis 0.0;
+MAIOR>
+>> a >> " " >> -a >> " " >> c >> " " >> a / 10;
+>> "|" + a + "|" + c;
+FINIS;
+
+@@@ OK : incrementos y asignaciones compuestas sobre decimales
+@@> salida: 3.5 2.5 7.5 3.75 4.75
+=== D.z
+public class D {
+    public D() {
+        double d = 2.5;
+        d++;
+        print(d);
+        print(" ");
+        d--;
+        print(d);
+        print(" ");
+        d *= 3;
+        print(d);
+        print(" ");
+        d /= 2;
+        print(d);
+        print(" ");
+        d += 1;
+        print(d);
+    }
+}
+=== main.pig
+import D.z
+VARIABILES>
+esto d : novus D() : D ;
+MAIOR>
+FINIS;
+
+@@@ OK : parametros y retornos decimales en Y
+@@> salida: 3.75 14.0 2.75
+=== main.pig
+import lib.f.y
+MAIOR>
+>> promedio(3, 4.5) >> " " >> area(2.0) >> " " >> promedio(promedio(1, 3), area(1));
+FINIS;
+=== lib/f.y
+%funciones
+definir promedio(flotante a, flotante b) -> flotante:
+    retornar (a + b) / 2
+
+definir area(flotante r) -> flotante:
+    retornar 3.5 * r * r
+
+@@@ OK : recursividad con decimales
+@@> salida: 5.0625 1024.0 1.0
+=== main.pig
+import lib.p.y
+MAIOR>
+>> potencia(1.5, 4) >> " " >> potencia(2, 10) >> " " >> potencia(9.75, 0);
+FINIS;
+=== lib/p.y
+%funciones
+definir potencia(flotante b, entero e) -> flotante:
+    si (e == 0) entonces
+        retornar 1.0
+    retornar b * potencia(b, e - 1)
+
+@@@ OK : estructura de Y con campo flotante
+@@> salida: 10.0|Pan|11.0
+=== main.pig
+import lib.s.y
+VARIABILES>
+esto p : Producto {"Pan", 2.5, 4};
+MAIOR>
+>> total(p) >> "|" >> p.nombre;
+subir(p);
+>> "|" >> total(p);
+FINIS;
+=== lib/s.y
+%estructuras
+estructura Producto:
+    cadena nombre
+    flotante precio
+    entero cantidad
+%funciones
+definir total({}Producto p) -> flotante:
+    retornar p.precio * p.cantidad
+
+definir subir({}Producto p):
+    p.precio = p.precio + 0.25
+
+@@@ OK : arreglo de decimales suma y mayor
+@@> salida: 7.0 3.0 1.75
+=== main.pig
+VARIABILES>
+series d[4] : decimalis {1.5, 2.25, 3.0, 0.25};
+esto suma : decimalis 0.0;
+esto mayor : decimalis 0.0;
+MAIOR>
+per (esto i : numerus 0; i < 4; i++) {
+    suma = suma + d[i];
+    si (d[i] > mayor) {
+        mayor = d[i];
+    } finis;
+}
+>> suma >> " " >> mayor >> " " + suma / 4;
+FINIS;
+
+@@@ OK : matriz de decimales con valores por defecto
+@@> salida: 0.0\n2.5\n3.75\n
+=== Mat.z
+public class Mat {
+    public Mat() {
+        double[][] m = new double[2][2];
+        m[1][0] = 2.5;
+        m[1][1] = m[1][0] + 1.25;
+        println(m[0][1]);
+        println(m[0][0] + m[1][0]);
+        println(m[1][1]);
+    }
+}
+=== main.pig
+import Mat.z
+VARIABILES>
+esto m : novus Mat() : Mat ;
+MAIOR>
+FINIS;
+
+@@@ OK : despacho dinamico que retorna decimales
+@@> salida: 12.0|6.0|0.0|18.0
+=== main.pig
+import Figura.z
+import Circulo.z
+import Rectangulo.z
+VARIABILES>
+series f[3] : Figura;
+esto total : decimalis 0.0;
+MAIOR>
+f[0] = novus Circulo(2);
+f[1] = novus Rectangulo(1.5, 4);
+f[2] = novus Figura();
+per (esto k : numerus 0; k < 3; k++) {
+    >> f[k].area() >> "|";
+    total = total + f[k].area();
+}
+>> total;
+FINIS;
+=== Figura.z
+public class Figura {
+    public Figura() {
+    }
+    public double area() {
+        return 0.0;
+    }
+}
+=== Circulo.z
+public class Circulo extends Figura {
+    private double radio;
+    public Circulo(double radio) {
+        this.radio = radio;
+    }
+    @Override
+    public double area() {
+        return 3.0 * radio * radio;
+    }
+}
+=== Rectangulo.z
+public class Rectangulo extends Figura {
+    private double ancho;
+    private double alto;
+    public Rectangulo(double ancho, double alto) {
+        this.ancho = ancho;
+        this.alto = alto;
+    }
+    @Override
+    public double area() {
+        return ancho * alto;
+    }
+}
+
+@@@ OK : despacho dinamico con parametro decimal convertido
+@@> salida: 3.0 6.0 4.5
+=== main.pig
+import Op.z
+import Doble.z
+VARIABILES>
+esto a : novus Op() : Op ;
+esto b : novus Doble() : Op ;
+MAIOR>
+>> a.aplicar(3) >> " " >> b.aplicar(3) >> " " >> b.aplicar(2.25);
+FINIS;
+=== Op.z
+public class Op {
+    public Op() {
+    }
+    public double aplicar(double x) {
+        return x;
+    }
+}
+=== Doble.z
+public class Doble extends Op {
+    public Doble() {
+    }
+    @Override
+    public double aplicar(double x) {
+        return x * 2;
+    }
+}
+
+@@@ OK : atributo decimal heredado con protected y super
+@@> salida: 69.75\n70.75\nQ70.75 de Ana\n
+=== main.pig
+import Cuenta.z
+import Ahorro.z
+VARIABILES>
+esto c : novus Ahorro("Ana") : Cuenta ;
+MAIOR>
+c.depositar(100);
+c.retirar(30.25);
+c.mostrar();
+FINIS;
+=== Cuenta.z
+public class Cuenta {
+    protected double saldo = 0.0;
+    protected String titular;
+    public Cuenta(String titular) {
+        this.titular = titular;
+    }
+    public void depositar(double monto) {
+        saldo += monto;
+    }
+    public void retirar(double monto) {
+        saldo = saldo - monto;
+    }
+    public void mostrar() {
+        println(saldo);
+    }
+}
+=== Ahorro.z
+public class Ahorro extends Cuenta {
+    public Ahorro(String titular) {
+        super(titular);
+    }
+    @Override
+    public void mostrar() {
+        super.mostrar();
+        saldo++;
+        println(super.saldo);
+        println("Q" + saldo + " de " + titular);
+    }
+}
+
+@@@ OK : recursion mutua entre funciones de Y
+@@> salida: verum verum falsus
+=== main.pig
+import lib.m.y
+MAIOR>
+>> esPar(10) >> " " >> esImpar(7) >> " " >> esPar(3);
+FINIS;
+=== lib/m.y
+%funciones
+definir esPar(entero n) -> bool:
+    si (n == 0) entonces
+        retornar verdadero
+    retornar esImpar(n - 1)
+
+definir esImpar(entero n) -> bool:
+    si (n == 0) entonces
+        retornar falso
+    retornar esPar(n - 1)
+
+@@@ OK : recursion profunda
+@@> salida: 2001000
+=== main.pig
+import lib.r.y
+MAIOR>
+>> suma(2000);
+FINIS;
+=== lib/r.y
+%funciones
+definir suma(entero n) -> entero:
+    si (n == 0) entonces
+        retornar 0
+    retornar n + suma(n - 1)
+
+@@@ OK : llamadas anidadas como argumentos
+@@> salida: 55 256 16
+=== main.pig
+import lib.n.y
+MAIOR>
+>> mayor(sumar(10), mayor(3, cuadrado(4))) >> " " >> cuadrado(cuadrado(cuadrado(2))) >> " " >> mayor(cuadrado(2), cuadrado(4));
+FINIS;
+=== lib/n.y
+%funciones
+definir mayor(entero a, entero b) -> entero:
+    si (a > b) entonces
+        retornar a
+    retornar b
+
+definir cuadrado(entero x) -> entero:
+    retornar x * x
+
+definir sumar(entero n) -> entero:
+    entero s = 0
+    para (entero i = 1; i <= n; i++):
+        s = s + i
+    retornar s
+
+@@@ OK : temporales que sobreviven a una llamada recursiva
+@@> salida: 1234|3 12 3
+=== main.pig
+import lib.t.y
+import V.z
+VARIABILES>
+esto x : novus V(3) : V ;
+esto y : novus V(4) : V ;
+MAIOR>
+>> digitos(4) >> "|" >> x.valor() >> " " >> x.valor() * y.valor() >> " " >> x.valor();
+FINIS;
+=== lib/t.y
+%funciones
+definir digitos(entero n) -> entero:
+    si (n == 0) entonces
+        retornar 0
+    retornar digitos(n - 1) * 10 + n
+=== V.z
+public class V {
+    private int v;
+    public V(int v) {
+        this.v = v;
+    }
+    public int valor() {
+        return v;
+    }
+}
+
+@@@ OK : metodos recursivos en objetos
+@@> salida: 21 8
+=== main.pig
+import Mat.z
+VARIABILES>
+esto m : novus Mat() : Mat ;
+MAIOR>
+>> m.fib(8) >> " " >> m.mcd(48, 40);
+FINIS;
+=== Mat.z
+public class Mat {
+    public Mat() {
+    }
+    public int fib(int n) {
+        if (n < 2) {
+            return n;
+        }
+        return fib(n - 1) + fib(n - 2);
+    }
+    public int mcd(int a, int b) {
+        if (b == 0) {
+            return a;
+        }
+        return mcd(b, a % b);
+    }
+}
+
+@@@ OK : indices de arreglo grandes
+@@> salida: 12 0 399
+=== main.pig
+VARIABILES>
+series v[400] : numerus;
+MAIOR>
+v[399] = 7;
+v[300] = 5;
+per (esto i : numerus 0; i < 400; i++) {
+    si (i > 300) {
+        v[i] = v[i] + 0;
+    } finis;
+}
+>> v[399] + v[300] >> " " >> v[0] >> " " >> 399;
+FINIS;
+
+@@@ OK : cadena literal de 300 caracteres
+@@> salida: abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij|verum
+=== main.pig
+VARIABILES>
+esto s : textum "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij";
+MAIOR>
+>> s >> "|" >> (s + "" == "abcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghijabcdefghij");
+FINIS;
+
+@@@ ERROR : el modulo no acepta decimales
+@@> error: El operador '%' no se puede aplicar a 'double' y 'int'
+=== E.z
+public class E {
+    public E() {
+        println(7.5 % 2);
+    }
+}
+
+@@@ OK : marco con mas de 256 celdas
+@@> salida: v0-3|v1-4|v2-5|v3-6|v4-7|v5-8|v6-9|v7-10|v8-11|v9-12|v10-13|v11-14|v12-15|v13-16|v14-17|v15-18|v16-19|v17-20|v18-21|v19-22|v20-23|v21-24|v22-25|v23-26|v24-27
+=== main.pig
+VARIABILES>
+esto n : numerus 3;
+esto c0 : textum "v" + 0 + "-" + (n + 0);
+esto c1 : textum "v" + 1 + "-" + (n + 1);
+esto c2 : textum "v" + 2 + "-" + (n + 2);
+esto c3 : textum "v" + 3 + "-" + (n + 3);
+esto c4 : textum "v" + 4 + "-" + (n + 4);
+esto c5 : textum "v" + 5 + "-" + (n + 5);
+esto c6 : textum "v" + 6 + "-" + (n + 6);
+esto c7 : textum "v" + 7 + "-" + (n + 7);
+esto c8 : textum "v" + 8 + "-" + (n + 8);
+esto c9 : textum "v" + 9 + "-" + (n + 9);
+esto c10 : textum "v" + 10 + "-" + (n + 10);
+esto c11 : textum "v" + 11 + "-" + (n + 11);
+esto c12 : textum "v" + 12 + "-" + (n + 12);
+esto c13 : textum "v" + 13 + "-" + (n + 13);
+esto c14 : textum "v" + 14 + "-" + (n + 14);
+esto c15 : textum "v" + 15 + "-" + (n + 15);
+esto c16 : textum "v" + 16 + "-" + (n + 16);
+esto c17 : textum "v" + 17 + "-" + (n + 17);
+esto c18 : textum "v" + 18 + "-" + (n + 18);
+esto c19 : textum "v" + 19 + "-" + (n + 19);
+esto c20 : textum "v" + 20 + "-" + (n + 20);
+esto c21 : textum "v" + 21 + "-" + (n + 21);
+esto c22 : textum "v" + 22 + "-" + (n + 22);
+esto c23 : textum "v" + 23 + "-" + (n + 23);
+esto c24 : textum "v" + 24 + "-" + (n + 24);
+MAIOR>
+>> c0 + "|" + c1 + "|" + c2 + "|" + c3 + "|" + c4 + "|" + c5 + "|" + c6 + "|" + c7 + "|" + c8 + "|" + c9 + "|" + c10 + "|" + c11 + "|" + c12 + "|" + c13 + "|" + c14 + "|" + c15 + "|" + c16 + "|" + c17 + "|" + c18 + "|" + c19 + "|" + c20 + "|" + c21 + "|" + c22 + "|" + c23 + "|" + c24;
+FINIS;
+
+@@@ OK : funcion recursiva con un marco grande
+@@> salida: e1.0e1.19/e2.0e2.19/e3.0e3.19/\n
+=== main.pig
+import lib.e.y
+MAIOR>
+>> eco(3);
+>> "\n";
+FINIS;
+=== lib/e.y
+%funciones
+definir eco(entero n) -> cadena:
+    si (n == 0) entonces
+        retornar ""
+    cadena a0 = "e" + n + "." + 0
+    cadena a1 = "e" + n + "." + 1
+    cadena a2 = "e" + n + "." + 2
+    cadena a3 = "e" + n + "." + 3
+    cadena a4 = "e" + n + "." + 4
+    cadena a5 = "e" + n + "." + 5
+    cadena a6 = "e" + n + "." + 6
+    cadena a7 = "e" + n + "." + 7
+    cadena a8 = "e" + n + "." + 8
+    cadena a9 = "e" + n + "." + 9
+    cadena a10 = "e" + n + "." + 10
+    cadena a11 = "e" + n + "." + 11
+    cadena a12 = "e" + n + "." + 12
+    cadena a13 = "e" + n + "." + 13
+    cadena a14 = "e" + n + "." + 14
+    cadena a15 = "e" + n + "." + 15
+    cadena a16 = "e" + n + "." + 16
+    cadena a17 = "e" + n + "." + 17
+    cadena a18 = "e" + n + "." + 18
+    cadena a19 = "e" + n + "." + 19
+    retornar eco(n - 1) + a0 + a19 + "/"
+
+@@@ OK : saltos condicionales sobre un cuerpo muy largo
+@@> salida: [0,0][0,1][0,2][0,3][0,4][0,5][0,6][0,7][0,8][0,9][0,10][0,11][0,12][0,13][0,14][0,15][0,16][0,17][0,18][0,19][0,20][0,21][0,22][0,23][0,24][0,25][0,26][0,27][0,28][0,29][1,0][1,1][1,2][1,3][1,4][1,5][1,6][1,7][1,8][1,9][1,10][1,11][1,12][1,13][1,14][1,15][1,16][1,17][1,18][1,19][1,20][1,21][1,22][1,23][1,24][1,25][1,26][1,27][1,28][1,29]|fin
+=== main.pig
+VARIABILES>
+esto i : numerus 0;
+MAIOR>
+dum (i < 2) {
+    >> "[" + i + "," + 0 + "]";
+    >> "[" + i + "," + 1 + "]";
+    >> "[" + i + "," + 2 + "]";
+    >> "[" + i + "," + 3 + "]";
+    >> "[" + i + "," + 4 + "]";
+    >> "[" + i + "," + 5 + "]";
+    >> "[" + i + "," + 6 + "]";
+    >> "[" + i + "," + 7 + "]";
+    >> "[" + i + "," + 8 + "]";
+    >> "[" + i + "," + 9 + "]";
+    >> "[" + i + "," + 10 + "]";
+    >> "[" + i + "," + 11 + "]";
+    >> "[" + i + "," + 12 + "]";
+    >> "[" + i + "," + 13 + "]";
+    >> "[" + i + "," + 14 + "]";
+    >> "[" + i + "," + 15 + "]";
+    >> "[" + i + "," + 16 + "]";
+    >> "[" + i + "," + 17 + "]";
+    >> "[" + i + "," + 18 + "]";
+    >> "[" + i + "," + 19 + "]";
+    >> "[" + i + "," + 20 + "]";
+    >> "[" + i + "," + 21 + "]";
+    >> "[" + i + "," + 22 + "]";
+    >> "[" + i + "," + 23 + "]";
+    >> "[" + i + "," + 24 + "]";
+    >> "[" + i + "," + 25 + "]";
+    >> "[" + i + "," + 26 + "]";
+    >> "[" + i + "," + 27 + "]";
+    >> "[" + i + "," + 28 + "]";
+    >> "[" + i + "," + 29 + "]";
+    i++;
+} finis;
+>> "|fin";
+FINIS;
+
+@@@ OK : limites de los enteros de 32 bits
+@@> salida: 2147483647 -2147483648 2147395600 -1
+=== main.pig
+VARIABILES>
+esto m : numerus 2147483647;
+MAIOR>
+>> m >> " " >> 0 - m - 1 >> " " >> 46340 * 46340 >> " " >> m / (0 - m);
+FINIS;
+
+@@@ OK : leer negativos y decimales sin punto
+@@> entrada: -3.75\n-12\nQ\n4\n
+@@> salida: -7.5 -13 Q 4.0
+=== main.pig
+VARIABILES>
+esto d : decimalis 0.0;
+esto n : numerus 0;
+esto c : littera 'a';
+esto e : decimalis 1.0;
+MAIOR>
+d <<
+n <<
+c <<
+e <<
+>> d * 2 >> " " >> n - 1 >> " " >> c >> " " >> e;
+FINIS;
+
+@@@ OK : menu que lee hasta salir
+@@> entrada: 1\n5\n1\n7\n2\n3\n
+@@> salida: >+5>+7>=12>fin
+=== main.pig
+VARIABILES>
+esto op : numerus 0;
+esto x : numerus 0;
+esto total : numerus 0;
+MAIOR>
+dum (op != 3) {
+    >> ">";
+    op <<
+    si (op == 1) {
+        x <<
+        total = total + x;
+        >> "+" + x;
+    } finis;
+    si (op == 2) {
+        >> "=" + total;
+    } finis;
+} finis;
+>> "fin";
+FINIS;
+
+@@@ OK : readln de decimal en Zetariano y operaciones
+@@> entrada: 2.5\n4\n
+@@> salida: 6.25 10.0\n
+=== L.z
+public class L {
+    public L() {
+        double a = readln();
+        int b = readln();
+        print(a * a);
+        print(" ");
+        println(a * b);
+    }
+}
+=== main.pig
+import L.z
+VARIABILES>
+esto l : novus L() : L ;
+MAIOR>
+FINIS;

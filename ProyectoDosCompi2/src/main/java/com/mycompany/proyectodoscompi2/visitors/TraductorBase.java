@@ -251,7 +251,9 @@ public abstract class TraductorBase extends AbstractParseTreeVisitor<Valor> {
 
     // t = memoria[base + desplazamiento]
     private Valor leerMemoria(String memoria, String base, String desplazamiento, Tipo tipo) {
-        return operar("leer_" + memoria, base, desplazamiento, tipo);
+        String resultado = temporal();
+        codigo.agregar("leer_" + memoria, base, desplazamiento, resultado, tipo.equals(DECIMAL));
+        return new Valor(resultado, tipo);
     }
 
     // memoria[base + desplazamiento] = valor
@@ -1316,10 +1318,16 @@ public abstract class TraductorBase extends AbstractParseTreeVisitor<Valor> {
     // Copia los argumentos al marco siguiente, mueve P, llama, regresa P y lee el retorno
     protected Valor llamar(String etiqueta, Tipo tipoRetorno, List<Valor> argumentos) {
         escribirArgumentos(argumentos);
+        moverYLlamar(etiqueta);
+        return resultadoDeLlamada(tipoRetorno);
+    }
+
+    // Mientras P esta en el marco siguiente no se usan temporales de la funcion actual: en RISC-V los temporales
+    // viven en el marco y se leerian del marco equivocado
+    private void moverYLlamar(String etiqueta) {
         actualizar("P", "+", MARCO);
         emitir("call", "", "", etiqueta);
         actualizar("P", "-", MARCO);
-        return resultadoDeLlamada(tipoRetorno);
     }
 
     // Llamada a una funcion de un .y
@@ -1400,9 +1408,9 @@ public abstract class TraductorBase extends AbstractParseTreeVisitor<Valor> {
         if (sobrescrituras.isEmpty()) {
             return llamar(propia, metodo.tipo(), conThis);
         }
+        // se compara el numero de la clase antes de mover P
         Valor numero = leerMemoria("heap", objeto.direccion(), "0", ENTERO);
         escribirArgumentos(conThis);
-        actualizar("P", "+", MARCO);
         String fin = etiqueta();
         Map<String, String> saltosPorImplementacion = new LinkedHashMap<>();
         for (Map.Entry<String, List<Integer>> sobrescritura : sobrescrituras.entrySet()) {
@@ -1412,15 +1420,14 @@ public abstract class TraductorBase extends AbstractParseTreeVisitor<Valor> {
                 emitir("if ==", numero.direccion(), String.valueOf(numeroClase), destino);
             }
         }
-        emitir("call", "", "", propia);
+        moverYLlamar(propia);
         saltar(fin);
         for (Map.Entry<String, String> salto : saltosPorImplementacion.entrySet()) {
             colocar(salto.getValue());
-            emitir("call", "", "", salto.getKey());
+            moverYLlamar(salto.getKey());
             saltar(fin);
         }
         colocar(fin);
-        actualizar("P", "-", MARCO);
         return resultadoDeLlamada(metodo.tipo());
     }
 
