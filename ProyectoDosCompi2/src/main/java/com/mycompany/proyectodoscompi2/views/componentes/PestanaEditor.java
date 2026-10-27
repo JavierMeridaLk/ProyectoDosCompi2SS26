@@ -19,12 +19,14 @@ import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.text.AbstractDocument;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Element;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import javax.swing.text.TabSet;
 import javax.swing.text.TabStop;
+import javax.swing.undo.CompoundEdit;
 import javax.swing.undo.UndoManager;
 
 import com.mycompany.proyectodoscompi2.analizador.Lenguaje;
@@ -38,6 +40,7 @@ public class PestanaEditor extends JPanel {
     private final JTextPane texto;
     private final Coloreador coloreador;
     private final UndoManager deshacer = new UndoManager();
+    private CompoundEdit agrupado;
     private final List<Runnable> alCambiarEstado = new ArrayList<>();
     private Path archivo;
     private boolean modificado;
@@ -107,7 +110,11 @@ public class PestanaEditor extends JPanel {
                     && evento.getType() == DocumentEvent.EventType.CHANGE) {
                 return;
             }
-            deshacer.addEdit(e.getEdit());
+            if (agrupado != null) {
+                agrupado.addEdit(e.getEdit());
+            } else {
+                deshacer.addEdit(e.getEdit());
+            }
         });
         int ctrl = InputEvent.CTRL_DOWN_MASK;
         texto.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_Z, ctrl), "deshacer");
@@ -190,5 +197,34 @@ public class PestanaEditor extends JPanel {
         int linea = raiz.getElementIndex(posicion);
         int columna = posicion - raiz.getElement(linea).getStartOffset();
         return new int[] {linea + 1, columna + 1};
+    }
+
+    public void reemplazarContenido(String nuevo) {
+        if (nuevo.equals(getContenido())) {
+            return;
+        }
+        int linea = getLineaColumna()[0];
+        agrupado = new CompoundEdit();
+        try {
+            texto.getDocument().remove(0, texto.getDocument().getLength());
+            texto.getDocument().insertString(0, nuevo, null);
+        } catch (BadLocationException e) {
+            throw new IllegalStateException(e);
+        } finally {
+            agrupado.end();
+            deshacer.addEdit(agrupado);
+            agrupado = null;
+        }
+        irA(linea, 1);
+    }
+
+    // Mueve el cursor a una linea y columna
+    public void irA(int linea, int columna) {
+        Element raiz = texto.getDocument().getDefaultRootElement();
+        Element elemento = raiz.getElement(Math.max(0, Math.min(linea - 1, raiz.getElementCount() - 1)));
+        int fin = Math.max(elemento.getStartOffset(), elemento.getEndOffset() - 1);
+        int posicion = Math.min(elemento.getStartOffset() + Math.max(columna - 1, 0), fin);
+        texto.requestFocusInWindow();
+        texto.setCaretPosition(posicion);
     }
 }

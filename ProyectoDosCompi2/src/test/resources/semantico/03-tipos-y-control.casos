@@ -1,0 +1,600 @@
+Tipos, expresiones, variables y control de flujo en los tres lenguajes.
+
+@@@ OK : promocion de entero a decimal en expresiones (aclaracion de la auxiliar)
+@@> c3d: (double)
+=== Cuenta.z
+public class Cuenta {
+    private double saldo;
+    public boolean retirar(double monto) {
+        if (monto <= 0) {
+            return false;
+        }
+        if (getSaldo() - monto < 0 - 100) {
+            return false;
+        }
+        saldo = saldo - monto;
+        int veces = 2;
+        double total = veces * monto + 1;
+        total += veces;
+        return true;
+    }
+    public double getSaldo() {
+        return saldo;
+    }
+}
+
+@@@ ERROR : decimal a entero sin conversion
+@@> error: No se puede asignar un valor de tipo 'double' a uno de tipo 'int'
+=== A.z
+public class A {
+    public void m() {
+        int x = 2.5;
+    }
+}
+
+@@@ ERROR : cadena a entero
+@@> error: No se puede asignar un valor de tipo 'String' a uno de tipo 'int'
+=== A.z
+public class A {
+    public void m() {
+        int x = "5";
+    }
+}
+
+@@@ OK : concatenacion con todos los tipos
+=== A.z
+public class A {
+    public void m() {
+        String s = "a" + 1 + 2.5 + 'c' + true;
+        println(s + 3);
+    }
+}
+
+@@@ ERROR : suma de booleanos
+@@> error: El operador '+' no se puede aplicar a 'boolean' y 'boolean'
+=== A.z
+public class A {
+    public void m() {
+        boolean b = true + false;
+    }
+}
+
+@@@ ERROR : modulo con decimales
+@@> error: El operador '%' no se puede aplicar a 'double' y 'int'
+=== A.z
+public class A {
+    public void m() {
+        double d = 5.5 % 2;
+    }
+}
+
+@@@ ERROR : and con numeros
+@@> error: La condición debe ser de tipo booleano (se encontró 'int')
+=== A.z
+public class A {
+    public void m() {
+        boolean b = 1 && true;
+    }
+}
+
+@@@ ERROR : negacion de un numero
+@@> error: El operador '!' no se puede aplicar a 'int'
+=== A.z
+public class A {
+    public void m() {
+        boolean b = !5;
+    }
+}
+
+@@@ ERROR : menos unario de una cadena
+@@> error: El operador '-' no se puede aplicar a 'String'
+=== A.z
+public class A {
+    public void m() {
+        String s = -"hola";
+    }
+}
+
+@@@ ERROR : comparar cadena con numero con menor que
+@@> error: El operador '<' no se puede aplicar a 'String' y 'int'
+=== A.z
+public class A {
+    public void m() {
+        boolean b = "a" < 1;
+    }
+}
+
+@@@ OK : comparar cadenas con igual
+@@> c3d: heap[
+=== A.z
+public class A {
+    public boolean m(String a, String b) {
+        return a == b || a != "x";
+    }
+}
+
+@@@ ERROR : condicion de if no booleana
+@@> error: La condición debe ser de tipo booleano (se encontró 'int')
+=== A.z
+public class A {
+    public void m() {
+        if (5) {
+        }
+    }
+}
+
+@@@ ERROR : condicion de while no booleana
+@@> error: La condición debe ser de tipo booleano
+=== A.z
+public class A {
+    public void m() {
+        while ("si") {
+        }
+    }
+}
+
+@@@ ERROR : variable no declarada
+@@> error: La variable 'z' no está declarada
+=== A.z
+public class A {
+    public void m() {
+        int x = z + 1;
+    }
+}
+
+@@@ ERROR : variable usada antes de declararla
+@@> error: La variable 'y' no está declarada
+=== A.z
+public class A {
+    public void m() {
+        int x = y;
+        int y = 2;
+    }
+}
+
+@@@ ERROR : variable que se usa en su propia declaracion
+@@> error: La variable 'x' no está declarada
+=== A.z
+public class A {
+    public void m() {
+        int x = x + 1;
+    }
+}
+
+@@@ ERROR : variable duplicada en el mismo ambito
+@@> error: 'x' ya fue declarada en este ámbito
+=== A.z
+public class A {
+    public void m() {
+        int x = 1;
+        int x = 2;
+    }
+}
+
+@@@ OK : misma variable en ambitos distintos
+=== A.z
+public class A {
+    public void m() {
+        for (int i = 0; i < 3; i++) {
+            int x = i;
+        }
+        for (int i = 0; i < 3; i++) {
+            int x = i * 2;
+        }
+        {
+            int x = 5;
+        }
+    }
+}
+
+@@@ ERROR : variable de un bloque usada afuera
+@@> error: La variable 'x' no está declarada
+=== A.z
+public class A {
+    public void m() {
+        if (true) {
+            int x = 1;
+        }
+        x = 2;
+    }
+}
+
+@@@ ERROR : parametro duplicado
+@@> error: 'a' ya fue declarada en este ámbito
+=== A.z
+public class A {
+    public void m(int a, int a) {
+    }
+}
+
+@@@ ERROR : tipo de variable inexistente
+@@> error: El tipo 'Fantasma' no está definido
+=== A.z
+public class A {
+    public void m() {
+        Fantasma f = null;
+    }
+}
+
+@@@ ERROR : retorno faltante
+@@> error: Se debe retornar un valor de tipo 'int'
+=== A.z
+public class A {
+    public int m() {
+        return;
+    }
+}
+
+@@@ ERROR : retorno con valor en void
+@@> error: No se puede retornar un valor en una función o método sin tipo de retorno
+=== A.z
+public class A {
+    public void m() {
+        return 5;
+    }
+}
+
+@@@ ERROR : retorno de tipo incorrecto
+@@> error: Se debe retornar un valor de tipo 'int' (se encontró 'String')
+=== A.z
+public class A {
+    public int m() {
+        return "cinco";
+    }
+}
+
+@@@ OK : retorno de subclase donde se espera el padre
+=== Fabrica.z
+public class Fabrica {
+    public Persona crear() {
+        return new Profesor();
+    }
+}
+=== Persona.z
+public class Persona {
+}
+=== Profesor.z
+public class Profesor extends Persona {
+}
+
+@@@ ERROR : break fuera de un ciclo
+@@> error: 'break' solo se puede usar dentro de un ciclo o de un switch
+=== A.z
+public class A {
+    public void m() {
+        break;
+    }
+}
+
+@@@ ERROR : continue dentro de un switch sin ciclo
+@@> error: 'continue' solo se puede usar dentro de un ciclo
+=== A.z
+public class A {
+    public void m(int x) {
+        switch (x) {
+            case 1:
+                continue;
+        }
+    }
+}
+
+@@@ OK : continue en un switch dentro de un ciclo
+=== A.z
+public class A {
+    public void m() {
+        for (int i = 0; i < 5; i++) {
+            switch (i) {
+                case 1:
+                    continue;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
+@@@ ERROR : switch con dos default y case de otro tipo
+@@> error: El switch ya tiene un default
+@@> error: El operador '==' no se puede aplicar a 'int' y 'String'
+=== A.z
+public class A {
+    public void m(int x) {
+        switch (x) {
+            case "uno":
+                break;
+            default:
+                break;
+            default:
+                break;
+        }
+    }
+}
+
+@@@ ERROR : expresion que no es instruccion
+@@> error: Esta expresión no es una instrucción
+=== A.z
+public class A {
+    public void m(int a) {
+        a + 1;
+    }
+}
+
+@@@ ERROR : asignar a algo que no es variable
+@@> error: Solo se puede asignar a una variable, un atributo o una posición de un arreglo
+=== A.z
+public class A {
+    public void m(int a) {
+        5 = a;
+    }
+}
+
+@@@ ERROR : incrementar una cadena
+@@> error: Solo se puede incrementar o decrementar un valor numérico
+=== A.z
+public class A {
+    public void m() {
+        String s = "a";
+        s++;
+    }
+}
+
+@@@ OK : arreglos y matrices
+=== A.z
+public class A {
+    public int m() {
+        int[] a = new int[5];
+        int[][] m = {{1, 2}, {3, 4}};
+        int[] b = new int[]{1, 2, 3};
+        a[0] = m[1][1] + b[2];
+        a[1]++;
+        return a[0];
+    }
+}
+
+@@@ ERROR : indice decimal
+@@> error: El índice debe ser de tipo entero
+=== A.z
+public class A {
+    public void m() {
+        int[] a = new int[5];
+        a[1.5] = 2;
+    }
+}
+
+@@@ ERROR : indexar algo que no es arreglo
+@@> error: no es un arreglo
+=== A.z
+public class A {
+    public void m() {
+        int x = 5;
+        x[0] = 1;
+    }
+}
+
+@@@ ERROR : cantidad de indices distinta a las dimensiones
+@@> error: Se debe indicar un índice por cada dimensión del arreglo
+=== A.z
+public class A {
+    public void m() {
+        int[][] m = new int[2][2];
+        int x = m[0];
+    }
+}
+
+@@@ ERROR : lista con filas de distinto largo
+@@> error: Todas las filas del arreglo deben tener la misma cantidad de elementos
+=== A.z
+public class A {
+    public void m() {
+        int[][] m = {{1, 2}, {3}};
+    }
+}
+
+@@@ ERROR : lista con elementos de otro tipo
+@@> error: No se puede asignar un valor de tipo 'String' a uno de tipo 'int'
+=== A.z
+public class A {
+    public void m() {
+        int[] a = {1, "dos", 3};
+    }
+}
+
+@@@ ERROR : lista para un primitivo
+@@> error: no se puede inicializar con una lista
+=== A.z
+public class A {
+    public void m() {
+        int x = {1};
+    }
+}
+
+@@@ ERROR : arreglo de otro tipo
+@@> error: No se puede asignar un valor de tipo 'double[]' a uno de tipo 'int[]'
+=== A.z
+public class A {
+    public void m() {
+        int[] a = new double[3];
+    }
+}
+
+@@@ ERROR : new arreglo sin todos los tamanos
+@@> error: Se debe indicar el tamaño de cada dimensión del arreglo
+=== A.z
+public class A {
+    public void m() {
+        int[][] a = new int[3][];
+    }
+}
+
+@@@ OK : ternario con tipos compatibles y promocion
+@@> c3d: (double)
+=== A.z
+public class A {
+    public double m(boolean c) {
+        double d = c ? 1 : 2.5;
+        Persona p = c ? null : new Persona();
+        return d;
+    }
+}
+=== Persona.z
+public class Persona {
+}
+
+@@@ ERROR : ternario con tipos incompatibles
+@@> error: Las dos opciones del operador ternario deben ser de tipos compatibles
+=== A.z
+public class A {
+    public void m(boolean c) {
+        int x = c ? 1 : "uno";
+    }
+}
+
+@@@ OK : readln convertido al tipo del destino
+@@> c3d: leer caracter
+=== A.z
+public class A {
+    public void m() {
+        int n = readln();
+        String s = readln();
+        readln();
+    }
+}
+
+@@@ OK : llamadas a funciones de Y desde Zetariano
+=== A.z
+public class A {
+    public int m() {
+        return doble(3) + 1;
+    }
+}
+=== util.y
+%funciones
+definir doble(entero n) -> entero:
+    retornar n * 2
+
+@@@ ERROR : funcion inexistente desde Zetariano
+@@> error: No existe un método 'triple' en la clase 'A' ni una función 'triple'
+=== A.z
+public class A {
+    public int m() {
+        return triple(3);
+    }
+}
+
+@@@ ERROR : numero demasiado grande
+@@> error: es demasiado grande
+=== A.z
+public class A {
+    public void m() {
+        int x = 99999999999;
+    }
+}
+
+@@@ OK : pig latin con todo tipo de instrucciones
+=== main.pig
+import lib.f.y
+VARIABILES>
+esto n : numerus 3;
+esto d : decimalis 2.5;
+esto t : textum "hola";
+esto l : littera 'x';
+esto b : bool verum;
+esto activo : falsus;
+series v[3] : numerus {1, 2, 3};
+series m[2][2] : decimalis;
+MAIOR>
+d = n * d + 1;
+v[0] = v[1] + v[2];
+m[0][1] = 1.5;
+n++;
+si (n > 2 && non activo) {
+    >> "mayor" >> n;
+} aliter (n == 2) {
+    >> "dos";
+} aliter {
+    >> "menor";
+} finis;
+dum (n > 0) {
+    n--;
+    si (n == 1) {
+        perge;
+    } finis;
+    si (n == 5) {
+        interrumpe;
+    } finis;
+} finis;
+facere {
+    n = n + 1;
+} dum (n < 3);
+per (esto i : numerus 0; i < 3; i++) {
+    >> v[i];
+}
+n <<
+t <<
+>> doble(n) >> t >> l >> b;
+FINIS;
+=== lib/f.y
+%funciones
+definir doble(entero n) -> entero:
+    retornar n * 2
+
+@@@ ERROR : pig con errores de tipo en instrucciones
+@@> error: No se puede asignar un valor de tipo 'textum' a uno de tipo 'numerus'
+@@> error: La condición debe ser de tipo booleano
+@@> error: 'interrumpe' solo se puede usar dentro de un ciclo
+@@> error: 'perge' solo se puede usar dentro de un ciclo
+@@> error: La función 'noExiste' no está definida
+=== main.pig
+VARIABILES>
+esto n : numerus 3;
+MAIOR>
+n = "tres";
+si (n) {
+} finis;
+interrumpe;
+perge;
+noExiste(1);
+FINIS;
+
+@@@ ERROR : pig arreglo con lista de otro tamano
+@@> error: La dimensión 1 del arreglo es de tamaño 3 y la lista tiene 2 elemento(s)
+=== main.pig
+VARIABILES>
+series v[3] : numerus {1, 2};
+MAIOR>
+FINIS;
+
+@@@ ERROR : leer en un arreglo completo
+@@> error: Solo se puede leer en un valor de tipo primitivo
+=== main.pig
+VARIABILES>
+series v[3] : numerus;
+MAIOR>
+v <<
+FINIS;
+
+@@@ ERROR : funcion de y con argumentos incorrectos
+@@> error: La función 'doble' espera 1 argumento(s) y se dieron 2
+@@> error: El argumento 1 de 'doble' debe ser de tipo 'numerus' (se encontró 'textum')
+=== main.pig
+import lib.f.y
+MAIOR>
+>> doble(1, 2);
+>> doble("x");
+FINIS;
+=== lib/f.y
+%funciones
+definir doble(entero n) -> entero:
+    retornar n * 2
+
+@@@ ERROR : variable local con el nombre de un parametro
+@@> error: 'a' ya fue declarada en este ámbito
+=== A.z
+public class A {
+    public void m(int a) {
+        int a = 2;
+    }
+    public A(int b) {
+        String b = "x";
+    }
+}

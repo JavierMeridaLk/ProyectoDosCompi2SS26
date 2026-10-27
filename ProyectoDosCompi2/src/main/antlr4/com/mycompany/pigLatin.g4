@@ -45,8 +45,6 @@ cuerpoDeclaracion
     | creacionObjeto                      # declaracionObjetoSinTipo
     ;
 
-
-
 declaracionArreglo
     : SERIES IDENTIFICADOR dimension+ DOS_PUNTOS tipo inicializador? PUNTO_Y_COMA
     ;

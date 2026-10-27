@@ -7,11 +7,22 @@ import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import javax.swing.JComponent;
+import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.WindowConstants;
+
+import com.mycompany.proyectodoscompi2.analizador.Compilador;
+import com.mycompany.proyectodoscompi2.analizador.ResultadoCompilacion;
+import com.mycompany.proyectodoscompi2.archivos.GestorArchivos;
+import com.mycompany.proyectodoscompi2.cuartetas.TraductorC3D;
+import com.mycompany.proyectodoscompi2.views.componentes.PestanaEditor;
 
 // Ventana principal del IDE.
 //
@@ -22,6 +33,7 @@ public class FramePrincipal extends javax.swing.JFrame {
     private final EditorDeTexctoPanel editor = new EditorDeTexctoPanel();
     private final ErroresPanel errores = new ErroresPanel();
     private final CodigoRiscVPanel codigoRiscV = new CodigoRiscVPanel();
+    private ResultadoCompilacion ultimoResultado;   // null hasta compilar algo
 
     public FramePrincipal() {
         initComponents();
@@ -64,12 +76,23 @@ public class FramePrincipal extends javax.swing.JFrame {
         jMenuItem11.addActionListener(e -> arbolProyecto.eliminarSeleccionado());
         jMenuItem12.addActionListener(e -> arbolProyecto.descargarProyecto());
 
+        // Generado: lo del ultimo programa compilado
+        jMenuItem6.addActionListener(e -> mostrarCodigo(resultado ->
+                new DialogoC3D(this, TraductorC3D.traducir(resultado.cuartetas()))));
+        jMenuItem7.addActionListener(e -> mostrarCodigo(resultado -> new DialogoCuartetas(this, resultado.cuartetas())));
+        jMenuItem8.addActionListener(e -> mostrarTablas(resultado ->
+                new DialogoTablaSimbolos(this, resultado.tablas().simbolos())));
+        jMenuItem9.addActionListener(e -> mostrarTablas(resultado ->
+                new DialogoTablaTipos(this, resultado.tablas().tipos())));
+        jMenuItem10.addActionListener(e -> new DialogoTablaCompatibilidad(this).setVisible(true));
+
         // grupos: proyecto | contenido | eliminar y descargar
         jMenu1.insertSeparator(5);
         jMenu1.insertSeparator(2);
     }
 
     private void conectarPaneles() {
+        editor.alCompilar(this::compilar);
         arbolProyecto.alAbrirArchivo(this::abrirEnEditor);
         arbolProyecto.alEliminar(editor::cerrarEliminados);
         editor.alGuardar(ruta -> {
@@ -141,6 +164,113 @@ public class FramePrincipal extends javax.swing.JFrame {
             return;
         }
         arbolProyecto.crearCarpeta();
+    }
+
+    // Compilacion
+
+    // Con un proyecto abierto se compila su .pig principal (el de la pestana actual o el que se elija si hay
+    // varios) con los archivos que importa. Sin proyecto se compila el archivo de la pestana actual.
+    private void compilar() {
+        Optional<Path> raiz = arbolProyecto.getRaiz();
+        Path programa;
+        Path base;
+        if (raiz.isPresent()) {
+            programa = elegirPrograma(raiz.get());
+            base = raiz.get();
+        } else {
+            programa = archivoActual();
+            base = programa != null ? programa.getParent() : null;
+        }
+        if (programa == null) {
+            return;
+        }
+        try {
+            ultimoResultado = Compilador.compilar(base, programa, this::leer);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "No se pudo leer el programa:\n" + e.getMessage(), "Compilar",
+                    JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+        errores.setErrores(ultimoResultado.errores());
+        codigoRiscV.setCodigo(null);    // la traduccion a RISC-V todavia no esta conectada
+    }
+
+    // Los archivos abiertos se leen del editor, aunque no esten guardados
+    private String leer(Path archivo) throws IOException {
+        Optional<PestanaEditor> abierta = editor.buscar(archivo);
+        return abierta.isPresent() ? abierta.get().getContenido() : GestorArchivos.leer(archivo);
+    }
+
+    private Path elegirPrograma(Path raiz) {
+        List<Path> programas;
+        try (Stream<Path> archivos = Files.walk(raiz)) {
+            programas = archivos.filter(archivo -> archivo.toString().endsWith(".pig")).sorted().toList();
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "No se pudo leer el proyecto:\n" + e.getMessage(), "Compilar",
+                    JOptionPane.ERROR_MESSAGE);
+            return null;
+        }
+        if (programas.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "El proyecto no tiene un archivo .pig (el programa principal).",
+                    "Compilar", JOptionPane.INFORMATION_MESSAGE);
+            return null;
+        }
+        if (programas.size() == 1) {
+            return programas.get(0);
+        }
+        Optional<Path> actual = editor.actual().map(PestanaEditor::getArchivo).filter(programas::contains);
+        if (actual.isPresent()) {
+            return actual.get();
+        }
+        Object[] opciones = programas.stream().map(archivo -> raiz.relativize(archivo)).toArray();
+        Object elegido = JOptionPane.showInputDialog(this, "El proyecto tiene varios .pig, ¿cuál compilar?",
+                "Compilar", JOptionPane.QUESTION_MESSAGE, null, opciones, opciones[0]);
+        return elegido == null ? null : raiz.resolve(elegido.toString());
+    }
+
+    // Archivo de la pestana actual si ya se guardo con una extension del IDE
+    private Path archivoActual() {
+        Optional<PestanaEditor> actual = editor.actual();
+        if (actual.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Abre un proyecto o un archivo para compilar.", "Compilar",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return null;
+        }
+        if (actual.get().getArchivo() == null || actual.get().getLenguaje().isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Guarda el archivo con extensión .pig, .y o .z para compilarlo.",
+                    "Compilar", JOptionPane.INFORMATION_MESSAGE);
+            return null;
+        }
+        return actual.get().getArchivo();
+    }
+
+    // Codigo 3D y cuartetas: solo existen si el ultimo programa compilo sin errores
+    private void mostrarCodigo(Function<ResultadoCompilacion, JDialog> crearDialogo) {
+        if (sinCompilar()) {
+            return;
+        }
+        if (!ultimoResultado.exitoso()) {
+            JOptionPane.showMessageDialog(this, "El programa tiene errores: corrígelos y vuelve a compilar para "
+                    + "generar el código.", "Código generado", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        crearDialogo.apply(ultimoResultado).setVisible(true);
+    }
+
+    // Las tablas se llenan aunque el programa tenga errores
+    private void mostrarTablas(Function<ResultadoCompilacion, JDialog> crearDialogo) {
+        if (!sinCompilar()) {
+            crearDialogo.apply(ultimoResultado).setVisible(true);
+        }
+    }
+
+    private boolean sinCompilar() {
+        if (ultimoResultado == null) {
+            JOptionPane.showMessageDialog(this, "Primero compila el programa (botón Compilar).", "Sin compilar",
+                    JOptionPane.INFORMATION_MESSAGE);
+            return true;
+        }
+        return false;
     }
 
     private void salir() {

@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -33,6 +35,8 @@ import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 
 import com.mycompany.ZetarianoLexer;
+import com.mycompany.proyectodoscompi2.analizador.CargadorArchivos;
+import com.mycompany.proyectodoscompi2.analizador.Compilador;
 import com.mycompany.ZetarianoParser;
 import com.mycompany.pigLatinLexer;
 import com.mycompany.pigLatinParser;
@@ -359,6 +363,9 @@ public class PruebasGramaticasTest {
         if (!cumple) {
             fail(detalle(caso, fuente, resultado, "se esperaba " + caso.esperado()));
         }
+        if (!hayLexicos && !haySintacticos) {
+            compilarSinExcepciones(lenguaje, caso, fuente, resultado);
+        }
         if (caso.forma() != null) {
             ParseTree expresion = primeraExpresion(resultado.arbol());
             String obtenida = expresion == null ? "(sin expresion)" : forma(expresion);
@@ -380,6 +387,32 @@ public class PruebasGramaticasTest {
                     fail(detalle(caso, fuente, resultado, "no deberia usarse la alternativa " + alternativa));
                 }
             }
+        }
+    }
+
+    // Un programa sin errores de sintaxis tambien pasa por el semantico y la generacion de cuartetas:
+    // puede tener errores semanticos, pero nunca debe lanzar una excepcion
+    private static void compilarSinExcepciones(Lenguaje lenguaje, Caso caso, String fuente, Resultado resultado) {
+        String nombre = lenguaje == ZETARIANO ? "Prueba.z" : lenguaje == PIG_LATIN ? "main.pig" : "prueba.y";
+        Path raiz = Path.of("/proyecto");
+        Path archivo = raiz.resolve(nombre);
+        CargadorArchivos.LectorArchivos lector = new CargadorArchivos.LectorArchivos() {
+            @Override
+            public String leer(Path ruta) {
+                return fuente;
+            }
+
+            @Override
+            public boolean existe(Path ruta) {
+                return ruta.equals(archivo);
+            }
+        };
+        try {
+            Compilador.compilar(raiz, archivo, lector);
+        } catch (RuntimeException | IOException e) {
+            StringWriter traza = new StringWriter();
+            e.printStackTrace(new PrintWriter(traza));
+            fail(detalle(caso, fuente, resultado, "el semántico lanzó una excepción:\n" + traza));
         }
     }
 

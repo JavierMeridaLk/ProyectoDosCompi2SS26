@@ -1,0 +1,236 @@
+Y?: estructuras, funciones y su uso desde Pig Latin y Zetariano.
+
+@@@ OK : calculadora en Y
+@@> c3d: func f_factorial
+@@> c3d: call f_factorial
+=== util.y
+%estructuras
+estructura Historial:
+    entero cantidad
+    flotante valores[10]
+
+%funciones
+definir factorial(entero n) -> entero:
+    si(n < 2) entonces
+        retornar 1
+    retornar n * factorial(n - 1)
+
+definir aplicar(entero op, flotante a, flotante b) -> flotante:
+    flotante r = 0.0
+    elegir(op) :
+        caso 1:
+            r = a + b
+            romper
+        caso 2:
+            r = a - b
+            romper
+        siempre:
+            imprimir("Operacion desconocida")
+    retornar r
+
+definir registrar({}Historial h, flotante valor):
+    si (h.cantidad < 10) entonces
+        h.valores[h.cantidad] = valor
+        h.cantidad++
+    contrario
+        imprimir("Historial lleno")
+
+definir recorrer([]entero datos, entero n) -> entero:
+    entero suma = 0
+    para(entero i = 0; i < n; i++):
+        suma = suma + datos[i]
+    entero j = 0
+    mientras(j < n) hacer
+        j++
+    hacer:
+        j--
+    mientras(j > 0)
+    retornar suma
+
+@@@ OK : estructura usada desde pig con lista
+=== main.pig
+import lib.e.y
+VARIABILES>
+esto p : Punto {1, 2};
+esto q : Punto;
+esto vacio : null : Punto;
+MAIOR>
+q.x = p.x + p.y;
+>> mover(p, 3).x;
+FINIS;
+=== lib/e.y
+%estructuras
+estructura Punto:
+    entero x
+    entero y
+%funciones
+definir mover({}Punto p, entero dx) -> Punto:
+    p.x = p.x + dx
+    retornar p
+
+@@@ ERROR : estructura con cantidad incorrecta de valores
+@@> error: La estructura 'Punto' tiene 2 atributo(s) y se dieron 3 valor(es)
+=== main.pig
+import lib.e.y
+VARIABILES>
+esto p : Punto {1, 2, 3};
+MAIOR>
+FINIS;
+=== lib/e.y
+%estructuras
+estructura Punto:
+    entero x
+    entero y
+%funciones
+
+@@@ ERROR : atributo inexistente de estructura
+@@> error: El tipo 'Punto' no tiene un atributo 'z'
+=== main.pig
+import lib.e.y
+VARIABILES>
+esto p : Punto;
+MAIOR>
+>> p.z;
+FINIS;
+=== lib/e.y
+%estructuras
+estructura Punto:
+    entero x
+%funciones
+
+@@@ OK : estructuras anidadas y con arreglos (se crean con sus partes)
+@@> c3d: H =
+=== lib/e.y
+%estructuras
+estructura Direccion:
+    cadena calle
+estructura Persona:
+    entero edad
+    entero notas[3]
+    Direccion casa
+%funciones
+definir crear() -> Persona:
+    Persona p
+    p.notas[0] = 10
+    p.casa.calle = "Central"
+    retornar p
+
+@@@ ERROR : atributo de estructura con tipo inexistente
+@@> error: El tipo 'Fantasma' no está definido
+=== lib/e.y
+%estructuras
+estructura P:
+    Fantasma f
+%funciones
+
+@@@ ERROR : tamano de arreglo no constante en estructura
+@@> error: debe ser una constante entera
+=== lib/e.y
+%estructuras
+estructura P:
+    entero v[n]
+%funciones
+
+@@@ ERROR : estructura duplicada y atributo duplicado
+@@> error: Ya existe una estructura o clase llamada 'P'
+@@> error: ya tiene un atributo 'x'
+=== lib/e.y
+%estructuras
+estructura P:
+    entero x
+    entero x
+estructura P:
+    entero y
+%funciones
+
+@@@ ERROR : funcion duplicada
+@@> error: Ya existe una función llamada 'f'
+=== lib/e.y
+%funciones
+definir f():
+    retornar
+definir f(entero x):
+    retornar
+
+@@@ ERROR : romper y continuar fuera de ciclos
+@@> error: 'romper' solo se puede usar dentro de un ciclo o de un elegir
+@@> error: 'continuar' solo se puede usar dentro de un ciclo
+=== lib/e.y
+%funciones
+definir f():
+    romper
+    continuar
+
+@@@ OK : romper dentro de elegir
+=== lib/e.y
+%funciones
+definir f(entero x):
+    elegir(x):
+        caso 1:
+            romper
+        siempre:
+            romper
+
+@@@ ERROR : retorno incorrecto en Y
+@@> error: Se debe retornar un valor de tipo 'entero' (se encontró 'cadena')
+@@> error: No se puede retornar un valor en una función o método sin tipo de retorno
+=== lib/e.y
+%funciones
+definir f() -> entero:
+    retornar "x"
+definir g():
+    retornar 1
+
+@@@ ERROR : condicion no booleana en Y
+@@> error: La condición debe ser de tipo booleano (se encontró 'entero')
+=== lib/e.y
+%funciones
+definir f(entero x):
+    si (x) entonces
+        retornar
+
+@@@ ERROR : caso de otro tipo en elegir
+@@> error: El operador '==' no se puede aplicar a 'entero' y 'cadena'
+=== lib/e.y
+%funciones
+definir f(entero x):
+    elegir(x):
+        caso "uno":
+            romper
+
+@@@ OK : leer en Y convierte al tipo
+@@> c3d: leer caracter
+=== lib/e.y
+%funciones
+definir f():
+    flotante x = leer()
+    cadena s = leer()
+
+@@@ OK : arreglo de estructuras con lista
+=== lib/e.y
+%estructuras
+estructura P:
+    entero x
+    cadena nombre
+%funciones
+definir f() -> entero:
+    P lista[2] = {{1, "a"}, {2, "b"}}
+    retornar lista[1].x
+
+@@@ ERROR : variable de Y no declarada y duplicada
+@@> error: La variable 'nada' no está declarada
+@@> error: 'a' ya fue declarada en este ámbito
+=== lib/e.y
+%funciones
+definir f(entero a):
+    entero a = 1
+    nada = 2
+
+@@@ OK : funcion de Y que recibe y devuelve objetos de Zetariano
+=== lib/e.y
+%funciones
+definir nombre(Persona p) -> Persona:
+    retornar p
+=== Persona.z
+public class Persona {
+}

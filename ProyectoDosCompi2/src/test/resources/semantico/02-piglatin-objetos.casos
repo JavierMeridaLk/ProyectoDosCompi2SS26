@@ -1,0 +1,425 @@
+Pig Latin con objetos: tipo explicito, null y visibilidad desde fuera de las clases.
+
+@@@ OK : objeto con tipo explicito del enunciado
+=== main.pig
+import Persona.z
+import Profesor.z
+VARIABILES>
+esto miObjeto : novus Persona(12, "Profesor") : Persona ;
+esto otroObjeto : novus Profesor(12, miObjeto, novus Persona(1, "x")) : Persona ;
+esto nulo : null : Persona ;
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona(int edad, String nombre) {
+    }
+}
+=== Profesor.z
+public class Profesor extends Persona {
+    public Profesor(int edad, Persona jefe, Persona otra) {
+        super(edad, "profe");
+    }
+}
+
+@@@ ERROR : tipo explicito que no es superclase
+@@> error: No se puede asignar un valor de tipo 'Persona' a uno de tipo 'Profesor'
+=== main.pig
+import Persona.z
+import Profesor.z
+VARIABILES>
+esto p : novus Persona() : Profesor ;
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+}
+=== Profesor.z
+public class Profesor extends Persona {
+    public Profesor() {
+    }
+}
+
+@@@ ERROR : tipo explicito de clase que no existe
+@@> error: El tipo 'Fantasma' no está definido
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : null : Fantasma ;
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+}
+
+@@@ ERROR : valor primitivo con tipo de clase
+@@> error: No se puede asignar un valor de tipo 'numerus' a uno de tipo 'Persona'
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : 5 : Persona ;
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+}
+
+@@@ OK : objeto copiado de otra variable con tipo del padre
+=== main.pig
+import Persona.z
+import Profesor.z
+VARIABILES>
+esto a : novus Profesor() : Profesor ;
+esto b : a : Persona ;
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+}
+=== Profesor.z
+public class Profesor extends Persona {
+    public Profesor() {
+    }
+}
+
+@@@ OK : forma sin tipo del proyecto 1
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona();
+MAIOR>
+p.saludar();
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+    public void saludar() {
+    }
+}
+
+@@@ OK : asignar y comparar con null
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : null : Persona ;
+MAIOR>
+si (p == null) {
+    p = novus Persona();
+} finis;
+si (p != null && null == p) {
+    p = null;
+} finis;
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+}
+
+@@@ ERROR : null a una variable primitiva
+@@> error: No se puede asignar un valor de tipo 'null' a uno de tipo 'numerus'
+=== main.pig
+VARIABILES>
+esto n : numerus 0;
+MAIOR>
+n = null;
+FINIS;
+
+@@@ ERROR : comparar objeto con numero
+@@> error: El operador '==' no se puede aplicar a 'Persona' y 'numerus'
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : null : Persona ;
+MAIOR>
+si (p == 5) {
+} finis;
+FINIS;
+=== Persona.z
+public class Persona {
+}
+
+@@@ ERROR : metodo private desde pig
+@@> error: El método 'secreto' de la clase 'Persona' es private y no se puede usar fuera de una clase
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+p.secreto();
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+    private void secreto() {
+    }
+}
+
+@@@ ERROR : metodo protected desde pig
+@@> error: es protected y no se puede usar fuera de una clase
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+p.cuidar();
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+    protected void cuidar() {
+    }
+}
+
+@@@ ERROR : metodo default desde pig
+@@> error: es default y no se puede usar fuera de una clase
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+p.normal();
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+    void normal() {
+    }
+}
+
+@@@ ERROR : atributo default desde pig
+@@> error: El atributo 'nombre' de la clase 'Persona' es default y no se puede usar fuera de una clase
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+>> p.nombre;
+FINIS;
+=== Persona.z
+public class Persona {
+    String nombre;
+    public Persona() {
+    }
+}
+
+@@@ OK : atributo public desde pig
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+p.nombre = "Ana";
+>> p.nombre;
+FINIS;
+=== Persona.z
+public class Persona {
+    public String nombre;
+    public Persona() {
+    }
+}
+
+@@@ ERROR : constructor default (sin modificador) desde pig
+@@> error: es default y no se puede usar fuera de una clase
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+    Persona() {
+    }
+}
+
+@@@ OK : clase sin constructores se crea sin argumentos
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+    public int edad = 3;
+}
+
+@@@ ERROR : clase sin constructores creada con argumentos
+@@> error: no declara constructores
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona(5) : Persona ;
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+}
+
+@@@ ERROR : novus de clase inexistente
+@@> error: La clase 'Fantasma' no está definida
+=== main.pig
+VARIABILES>
+esto p : novus Fantasma();
+MAIOR>
+FINIS;
+
+@@@ ERROR : novus de una estructura
+@@> error: 'Punto' no es una clase
+=== main.pig
+import lib.d.y
+VARIABILES>
+esto p : novus Punto() : Punto ;
+MAIOR>
+FINIS;
+=== lib/d.y
+%estructuras
+estructura Punto:
+    entero x
+%funciones
+
+@@@ ERROR : metodo inexistente
+@@> error: La clase 'Persona' no tiene un método 'volar'
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+p.volar();
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+}
+
+@@@ ERROR : argumentos que no acepta ningun metodo
+@@> error: Ningún método 'saludar' de la clase 'Persona' acepta los argumentos (textum)
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+p.saludar("hola");
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+    public void saludar(int veces) {
+    }
+}
+
+@@@ OK : sobrecarga elegida por los argumentos y metodos encadenados
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+p.saludar(3);
+p.saludar("hola");
+>> p.yo().yo().edad();
+>> novus Persona().edad();
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+    public void saludar(int veces) {
+    }
+    public void saludar(String texto) {
+    }
+    public Persona yo() {
+        return this;
+    }
+    public int edad() {
+        return 1;
+    }
+}
+
+@@@ ERROR : metodo sobre un primitivo
+@@> error: Un valor de tipo 'numerus' no tiene métodos
+=== main.pig
+VARIABILES>
+esto n : numerus 1;
+MAIOR>
+n.m();
+FINIS;
+
+@@@ ERROR : llamada que no es instruccion
+@@> error: Esta instrucción no hace nada
+=== main.pig
+VARIABILES>
+esto n : numerus 1;
+MAIOR>
+n;
+FINIS;
+
+@@@ ERROR : imprimir un objeto
+@@> error: Solo se pueden imprimir valores primitivos
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+>> p;
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+}
+
+@@@ ERROR : imprimir llamada sin retorno
+@@> error: No se puede imprimir una llamada que no retorna valor
+=== main.pig
+import Persona.z
+VARIABILES>
+esto p : novus Persona() : Persona ;
+MAIOR>
+>> p.nada();
+FINIS;
+=== Persona.z
+public class Persona {
+    public Persona() {
+    }
+    public void nada() {
+    }
+}
+
+@@@ ERROR : import repetido e import de extension invalida
+@@> error: ya fue importado
+@@> error: Solo se pueden importar archivos .y o .z
+=== main.pig
+import Persona.z
+import Persona.z
+import otro.pig
+MAIOR>
+FINIS;
+=== Persona.z
+public class Persona {
+}
+
+@@@ ERROR : import de archivo inexistente
+@@> error: No se encontró el archivo importado 'clases/Nada.z'
+=== main.pig
+import clases.Nada.z
+MAIOR>
+FINIS;
+
+@@@ ERROR : clase usada sin importarla
+@@> error: La clase 'Persona' no está definida
+=== main.pig
+VARIABILES>
+esto p : novus Persona();
+MAIOR>
+FINIS;

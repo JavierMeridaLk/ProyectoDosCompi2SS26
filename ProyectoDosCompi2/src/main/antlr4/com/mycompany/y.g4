@@ -138,7 +138,6 @@ tokens { INDENT, DEDENT }
     }
 }
 
-
 programa
     : NEWLINE* seccionEstructuras? seccionFunciones EOF
     ;

@@ -3,8 +3,6 @@ grammar Zetariano;
 // Paquete de los archivos generados
 @header { package com.mycompany; }
 
-
-
 compilacion
     : declaracionClase EOF
     ;

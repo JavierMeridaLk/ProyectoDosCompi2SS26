@@ -20,6 +20,8 @@ import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.SwingConstants;
 
+import com.mycompany.proyectodoscompi2.analizador.Lenguaje;
+import com.mycompany.proyectodoscompi2.archivos.FormateadorCodigo;
 import com.mycompany.proyectodoscompi2.archivos.GestorArchivos;
 import com.mycompany.proyectodoscompi2.views.componentes.EncabezadoPestana;
 import com.mycompany.proyectodoscompi2.views.componentes.Estilos;
@@ -36,6 +38,7 @@ public class EditorDeTexctoPanel extends javax.swing.JPanel {
     private final JLabel vacio = new JLabel("Abre un archivo del proyecto o crea uno nuevo", SwingConstants.CENTER);
     private final JPanel contenido = new JPanel(new BorderLayout());
     private final List<Consumer<Path>> alGuardar = new ArrayList<>();
+    private Runnable alCompilar = () -> { };
 
 
     public EditorDeTexctoPanel() {
@@ -46,11 +49,13 @@ public class EditorDeTexctoPanel extends javax.swing.JPanel {
     private void construir() {
         removeAll();
         setLayout(new BorderLayout());
-        // Botones del encabezado, por ahora sin accion
+        // Botones del encabezado
         JButton tabular = new JButton("Tabular código");
         tabular.setFocusable(false);
+        tabular.addActionListener(e -> tabularActual());
         JButton compilar = new JButton("Compilar");
         compilar.setFocusable(false);
+        compilar.addActionListener(e -> alCompilar.run());
         JPanel botones = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
         botones.add(tabular);
         botones.add(compilar);
@@ -126,6 +131,10 @@ public class EditorDeTexctoPanel extends javax.swing.JPanel {
             lista.add((PestanaEditor) pestanas.getComponentAt(i));
         }
         return lista;
+    }
+
+    public void alCompilar(Runnable accion) {
+        alCompilar = accion;
     }
 
     public void alGuardar(Consumer<Path> accion) {
@@ -221,6 +230,30 @@ public class EditorDeTexctoPanel extends javax.swing.JPanel {
             contenido.repaint();
         }
         actualizarBarraEstado();
+    }
+
+    // Tabular
+
+    // Re-tabula el archivo actual segun su lenguaje: 4 espacios por nivel (llaves en Pig Latin y
+    // Zetariano, bloques indentados en Y?)
+    public void tabularActual() {
+        Optional<PestanaEditor> actual = actual();
+        if (actual.isEmpty()) {
+            return;
+        }
+        PestanaEditor pestana = actual.get();
+        Optional<Lenguaje> lenguajeArchivo = pestana.getLenguaje();
+        if (lenguajeArchivo.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Guarda el archivo con extensión .pig, .y o .z para tabularlo.",
+                    "Tabular código", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+        try {
+            pestana.reemplazarContenido(FormateadorCodigo.formatear(lenguajeArchivo.get(), pestana.getContenido()));
+        } catch (FormateadorCodigo.ErrorFormato e) {
+            JOptionPane.showMessageDialog(this, "No se puede tabular:\n" + e.getMessage(), "Tabular código",
+                    JOptionPane.WARNING_MESSAGE);
+        }
     }
 
     // Barra de estado 
