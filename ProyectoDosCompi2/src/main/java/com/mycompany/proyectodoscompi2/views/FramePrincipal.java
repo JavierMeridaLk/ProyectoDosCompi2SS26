@@ -44,6 +44,7 @@ public class FramePrincipal extends javax.swing.JFrame {
         colocar(jPanel2, editor, new Dimension(1000, 615));
         colocar(jPanel3, errores, new Dimension(1300, 260));
         colocar(jPanel4, codigoRiscV, new Dimension(500, 900));
+        codigoRiscV.setCarpetasRars(() -> arbolProyecto.getRaiz().map(List::of).orElse(List.of()));
         configurarMenus();
         conectarPaneles();
 
@@ -169,22 +170,14 @@ public class FramePrincipal extends javax.swing.JFrame {
 
     // Compilacion
 
-    // Con un proyecto abierto se compila su .pig principal (el de la pestana actual o el que se elija si hay
-    // varios) con los archivos que importa. Sin proyecto se compila el archivo de la pestana actual.
+    // Los imports se buscan desde la carpeta del .pig, aunque el proyecto se haya abierto en una carpeta superior.
     private void compilar() {
         Optional<Path> raiz = arbolProyecto.getRaiz();
-        Path programa;
-        Path base;
-        if (raiz.isPresent()) {
-            programa = elegirPrograma(raiz.get());
-            base = raiz.get();
-        } else {
-            programa = archivoActual();
-            base = programa != null ? programa.getParent() : null;
-        }
+        Path programa = raiz.isPresent() ? elegirPrograma(raiz.get()) : archivoActual();
         if (programa == null) {
             return;
         }
+        Path base = programa.getParent();
         try {
             ultimoResultado = Compilador.compilar(base, programa, this::leer);
         } catch (IOException e) {

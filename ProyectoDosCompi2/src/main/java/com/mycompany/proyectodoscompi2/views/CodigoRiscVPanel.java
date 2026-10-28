@@ -3,13 +3,17 @@ package com.mycompany.proyectodoscompi2.views;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.FlowLayout;
-import java.awt.Graphics;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
-import java.awt.geom.Rectangle2D;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Supplier;
+import java.util.prefs.Preferences;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -20,7 +24,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
-import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
@@ -28,7 +31,7 @@ import javax.swing.text.TabSet;
 import javax.swing.text.TabStop;
 
 import com.mycompany.proyectodoscompi2.archivos.GestorArchivos;
-import com.mycompany.proyectodoscompi2.views.coloreado.ColoreadorRiscV;
+import com.mycompany.proyectodoscompi2.riscv.Rars;
 import com.mycompany.proyectodoscompi2.views.componentes.Estilos;
 import com.mycompany.proyectodoscompi2.views.componentes.NumerosDeLinea;
 
@@ -38,30 +41,13 @@ public class CodigoRiscVPanel extends javax.swing.JPanel {
 
     private static final String SIN_CODIGO = "# Todavía no se ha generado código RISC-V.\n";
     private static final int ESPACIOS_POR_TAB = 8;
-    private static final Color LINEA_ACTUAL = new Color(238, 243, 252);
 
+    // texto sin coloreado: el codigo generado se muestra tal cual
     private final JTextPane codigo = new JTextPane() {
         // sin ajuste de linea: las instrucciones largas usan la barra horizontal
         @Override
         public boolean getScrollableTracksViewportWidth() {
             return getParent() == null || getUI().getPreferredSize(this).width <= getParent().getWidth();
-        }
-
-        // resalta la linea donde esta el cursor
-        @Override
-        protected void paintComponent(Graphics g) {
-            g.setColor(getBackground());
-            g.fillRect(0, 0, getWidth(), getHeight());
-            try {
-                Rectangle2D linea = modelToView2D(getCaretPosition());
-                if (linea != null && hayCodigo) {
-                    g.setColor(LINEA_ACTUAL);
-                    g.fillRect(0, (int) linea.getY(), getWidth(), (int) linea.getHeight());
-                }
-            } catch (BadLocationException e) {
-                // el texto cambio mientras se dibujaba
-            }
-            super.paintComponent(g);
         }
     };
     private final JLabel resumen = new JLabel(" ");
@@ -69,6 +55,9 @@ public class CodigoRiscVPanel extends javax.swing.JPanel {
     private final JButton guardar = new JButton("Guardar");
     private final JButton compilar = new JButton("Compilar");
     private boolean hayCodigo;
+    private String ensamblador;
+    private Supplier<List<Path>> carpetasRars = List::of;
+    private static final Preferences PREFERENCIAS = Preferences.userNodeForPackage(CodigoRiscVPanel.class);
 
 
     public CodigoRiscVPanel() {
@@ -82,11 +71,9 @@ public class CodigoRiscVPanel extends javax.swing.JPanel {
         add(Estilos.encabezado("Código ensamblador RISC-V", Estilos.ENCABEZADO_RISCV), BorderLayout.NORTH);
 
         codigo.setEditable(false);
-        codigo.setOpaque(false);
         codigo.setFont(Estilos.FUENTE_CODIGO);
         codigo.setBackground(Color.WHITE);
         codigo.setMargin(new java.awt.Insets(4, 10, 4, 10));
-        codigo.addCaretListener(e -> codigo.repaint());
         configurarTabs();
         JScrollPane desplazamiento = new JScrollPane(codigo);
         desplazamiento.setRowHeaderView(new NumerosDeLinea(codigo));
@@ -103,6 +90,7 @@ public class CodigoRiscVPanel extends javax.swing.JPanel {
         copiar.setFocusable(false);
         guardar.addActionListener(e -> guardar());
         copiar.addActionListener(e -> copiar());
+        compilar.addActionListener(e -> compilar());
         botones.add(guardar);
         botones.add(compilar);
         botones.add(copiar);
@@ -132,16 +120,64 @@ public class CodigoRiscVPanel extends javax.swing.JPanel {
 
     // Muestra el codigo generado 
     public void setCodigo(String ensamblador) {
+        this.ensamblador = ensamblador;
         hayCodigo = ensamblador != null && !ensamblador.isBlank();
         String texto = hayCodigo ? ensamblador : SIN_CODIGO;
         codigo.setText(texto);
-        ColoreadorRiscV.colorear(codigo.getStyledDocument(), texto);
         codigo.setCaretPosition(0);
         guardar.setEnabled(hayCodigo);
         compilar.setEnabled(hayCodigo);
         copiar.setEnabled(hayCodigo);
         int lineas = codigo.getDocument().getDefaultRootElement().getElementCount();
         resumen.setText(hayCodigo ? lineas + (lineas == 1 ? " línea" : " líneas") : " ");
+    }
+
+    // Carpetas donde buscar herramientas/rars1_6.jar ademas de la de trabajo y la del jar (la raiz del proyecto)
+    public void setCarpetasRars(Supplier<List<Path>> carpetas) {
+        carpetasRars = carpetas;
+    }
+
+    // Guarda el codigo en un .s y lo abre en la ventana de RARS, donde se ensambla (F3) y se ejecuta (F5)
+    private void compilar() {
+        Optional<Path> rars = buscarRars();
+        if (rars.isEmpty()) {
+            return;
+        }
+        try {
+            Path carpeta = Path.of(System.getProperty("java.io.tmpdir"), "ide-xs2");
+            Files.createDirectories(carpeta);
+            Path programa = carpeta.resolve("programa.s");
+            GestorArchivos.escribir(programa, ensamblador);
+            Rars.abrir(rars.get(), programa);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "No se pudo abrir RARS:\n" + e.getMessage(), "Compilar",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private Optional<Path> buscarRars() {
+        List<Path> carpetas = new ArrayList<>(carpetasRars.get());
+        carpetas.addAll(Rars.carpetasPorDefecto());
+        Optional<Path> encontrado = Rars.buscar(carpetas);
+        if (encontrado.isPresent()) {
+            return encontrado;
+        }
+        String elegido = PREFERENCIAS.get("rars", null);
+        if (elegido != null && Files.isRegularFile(Path.of(elegido))) {
+            return Optional.of(Path.of(elegido));
+        }
+        JOptionPane.showMessageDialog(this, "No se encontró RARS en " + Rars.CARPETA + "/" + Rars.ARCHIVO
+                + ".\nElige el archivo .jar de RARS (se descarga de github.com/TheThirdOne/rars/releases).",
+                "Compilar", JOptionPane.INFORMATION_MESSAGE);
+        JFileChooser selector = new JFileChooser();
+        selector.setDialogTitle("Elegir RARS");
+        selector.setFileFilter(new FileNameExtensionFilter("RARS (*.jar)", "jar"));
+        if (selector.showOpenDialog(this) != JFileChooser.APPROVE_OPTION) {
+            return Optional.empty();
+        }
+        Path rars = selector.getSelectedFile().toPath();
+        PREFERENCIAS.put("rars", rars.toString());
+        return Optional.of(rars);
     }
 
     private void copiar() {

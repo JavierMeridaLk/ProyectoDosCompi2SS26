@@ -11,28 +11,26 @@ import com.mycompany.proyectodoscompi2.cuartetas.Cuarteta;
 import com.mycompany.proyectodoscompi2.cuartetas.TraductorC3D;
 
 // Traduce las cuartetas a ensamblador RISC-V (RV32IMFD) para el simulador RARS.
-//
-// Memoria: el stack y el heap del codigo de tres direcciones son dos bloques de celdas de 8 bytes que se piden
-// al iniciar con sbrk. Un entero ocupa la palabra baja de su celda (lw/sw) y un decimal la celda completa (fld/fsd).
-//
 // Registros fijos:
 //   s0  direccion del stack          s1  direccion del heap
 //   s2  P (numero de celda)          s3  H (numero de celda)
 //   s4  direccion de stack[P]: el frame pointer en bytes, se recalcula cada vez que cambia P
 // Cada temporal vive en una celda del marco de su funcion, despues de las variables (el tamano del marco ya los
 // cuenta), asi la recursion no los pisa. t0-t2 / ft0-ft2 se usan para operar, t5 y t6 para direcciones.
-// ra se guarda en la pila del procesador (sp) al entrar a cada funcion.
 public final class TraductorRiscV {
 
-    public static final int CELDAS_STACK = 131_072;
-    public static final int CELDAS_HEAP = 1_048_576;
+    public static final int CELDAS_STACK = 393_216;          // 3 MB
+    public static final int CELDAS_HEAP = 393_216;           // 3 MB
+    private static final int INICIO_STACK = 0x7fc00000;     // inicio de la zona de la pila en RARS
     private static final int CELDA = 8;
+    private static final int LARGO_LINEA = 1024;            // buffer de la linea que se lee del teclado
 
     private final StringBuilder texto = new StringBuilder();
     private final Map<String, String> constantes = new LinkedHashMap<>();   // literal decimal -> etiqueta
     private final Map<String, Integer> celdas = new LinkedHashMap<>();     // temporal -> celda del marco
     private final Set<String> decimales = new HashSet<>();                 // temporales que guardan un decimal
     private int saltos;
+    private boolean usaLectura;
 
     private TraductorRiscV() {
     }
@@ -61,24 +59,23 @@ public final class TraductorRiscV {
 
         StringBuilder programa = new StringBuilder();
         programa.append("# Generado por IDE XS2 - RISC-V (RV32IMFD) para RARS\n");
-        programa.append("# s0 = stack   s1 = heap   s2 = P   s3 = H   s4 = &stack[P] (frame pointer)\n");
+        programa.append("# s0 = stack   s1 = heap   s2 = P   s3 = H   s4 = &stack[P] (frame pointer)   s5 = linea leida\n");
         programa.append("# cada celda del stack y del heap ocupa ").append(CELDA).append(" bytes\n\n");
         programa.append(".data\n");
         constantes.forEach((literal, etiqueta) -> programa.append(etiqueta).append(":\t.double ")
                 .append(new BigDecimal(literal).toPlainString()).append('\n'));
+        if (usaLectura) {
+            programa.append("_linea:\t.space ").append(LARGO_LINEA).append('\n');
+        }
         programa.append("\n.text\n").append(texto);
         return programa.toString();
     }
 
-    // Pide la memoria del stack y del heap y llama a main; main termina el programa con halt.
-    // Un .y o .z compilado solo no tiene main: sus funciones se traducen pero no se ejecuta nada
+
     private void inicio(boolean hayMain) {
         etiqueta("inicio");
         comentario("stack y heap del codigo de tres direcciones");
-        instruccion("li", "a0, " + CELDAS_STACK * CELDA);
-        instruccion("li", "a7, 9");
-        instruccion("ecall", "");
-        instruccion("mv", "s0, a0");
+        instruccion("li", "s0, " + INICIO_STACK);
         instruccion("li", "a0, " + CELDAS_HEAP * CELDA);
         instruccion("li", "a7, 9");
         instruccion("ecall", "");
@@ -86,6 +83,7 @@ public final class TraductorRiscV {
         instruccion("li", "s2, 0");
         instruccion("li", "s3, 0");
         instruccion("mv", "s4, s0");
+        instruccion("li", "s5, 0");
         if (hayMain) {
             instruccion("jal", "ra, main");
         } else {
@@ -95,9 +93,7 @@ public final class TraductorRiscV {
         instruccion("ecall", "");
     }
 
-    // ==================================================================
-    //                          Funciones
-    // ==================================================================
+    //Funciones
 
     private void funcion(List<Cuarteta> cuerpo) {
         int marco = Integer.parseInt(cuerpo.get(0).argumento1());
@@ -120,8 +116,7 @@ public final class TraductorRiscV {
         }
     }
 
-    // Un temporal es decimal si alguna de sus asignaciones produce un decimal (se repite hasta que no cambie,
-    // porque un ciclo puede usar un temporal antes de la asignacion que lo hace decimal)
+    // Un temporal es decimal si alguna de sus asignaciones produce un decimal 
     private void inferirDecimales(List<Cuarteta> cuerpo) {
         decimales.clear();
         boolean cambio = true;
@@ -145,9 +140,7 @@ public final class TraductorRiscV {
         }
     }
 
-    // ==================================================================
-    //                          Cuartetas
-    // ==================================================================
+    //Cuartetas
 
     private void traducir(Cuarteta c) {
         String op = c.operador();
@@ -245,11 +238,7 @@ public final class TraductorRiscV {
                 instruccion("ecall", "");
             }
             case "print" -> imprimir(a, b);
-            case "leer_caracter" -> {
-                instruccion("li", "a7, 12");
-                instruccion("ecall", "");
-                guardarEntero(r, "a0");
-            }
+            case "leer_caracter" -> leerCaracter(r);
             default -> throw new IllegalArgumentException("Cuarteta desconocida: " + c);
         }
     }
@@ -330,7 +319,6 @@ public final class TraductorRiscV {
         }
     }
 
-    // Un branch solo llega a +-4 KB: se salta la condicion contraria sobre un j, que llega a +-1 MB
     private void saltarSi(String op, String a, String b, String destino) {
         String siguiente = "_sigue" + (++saltos);
         if (esDecimal(a) || esDecimal(b)) {
@@ -351,6 +339,32 @@ public final class TraductorRiscV {
         }
         instruccion("j", destino);
         etiqueta(siguiente);
+    }
+
+    // En la consola RARS lee una linea completa por llamada
+    private void leerCaracter(String destino) {
+        usaLectura = true;
+        int n = ++saltos;
+        String hayLinea = "_linea" + n;
+        String finDeLinea = "_finlinea" + n;
+        String listo = "_leido" + n;
+        instruccion("bnez", "s5, " + hayLinea);
+        instruccion("la", "s5, _linea");
+        instruccion("mv", "a0, s5");
+        instruccion("li", "a1, " + LARGO_LINEA);
+        instruccion("li", "a7, 8");
+        instruccion("ecall", "");
+        etiqueta(hayLinea);
+        instruccion("lbu", "a0, 0(s5)");
+        instruccion("addi", "s5, s5, 1");
+        instruccion("beqz", "a0, " + finDeLinea);
+        instruccion("li", "t0, 10");
+        instruccion("bne", "a0, t0, " + listo);
+        etiqueta(finDeLinea);
+        instruccion("li", "s5, 0");
+        instruccion("li", "a0, 10");
+        etiqueta(listo);
+        guardarEntero(destino, "a0");
     }
 
     // print entero (1), decimal (3) o caracter (11)
@@ -374,9 +388,7 @@ public final class TraductorRiscV {
         instruccion("ecall", "");
     }
 
-    // ==================================================================
-    //                          Operandos
-    // ==================================================================
+    //Operandos
 
     private void cargarEntero(String operando, String registro) {
         if (esEntero(operando)) {
@@ -431,7 +443,7 @@ public final class TraductorRiscV {
         }
     }
 
-    // Celda de un temporal en el marco actual: desplazamiento(s4)
+    // Celda de un temporal en el marco actual
     private void enMarco(String instruccion, String registro, int celda) {
         int bytes = celda * CELDA;
         if (bytes < 2048) {
@@ -444,8 +456,6 @@ public final class TraductorRiscV {
     }
 
     // stack[base + desplazamiento] o heap[base + desplazamiento] como operando de lw/sw/fld/fsd.
-    // stack[P + n] usa directamente el frame pointer; lo demas calcula en t0 la direccion de la base y un
-    // desplazamiento constante va en la instruccion
     private String celda(String memoria, String base, String desplazamiento) {
         boolean stack = memoria.equals("stack");
         long bytes = esEntero(desplazamiento) ? Long.parseLong(desplazamiento) * CELDA : Long.MAX_VALUE;
@@ -504,9 +514,7 @@ public final class TraductorRiscV {
         return nombre.toString();
     }
 
-    // ==================================================================
-    //                          Texto
-    // ==================================================================
+    //Texto
 
     private void etiqueta(String nombre) {
         texto.append(nombre).append(":\n");
